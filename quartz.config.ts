@@ -32,8 +32,8 @@ const config: QuartzConfig = {
           gray: "#B5ADA3",         // 중간 회색
           darkgray: "#5C554D",     // 본문 글자 (따뜻한 다크)
           dark: "#1A1612",         // 제목 글자 (진한 갈색빛 검정)
-          secondary: "#D97757",    // Claude 오렌지 포인트 (링크색)
-          tertiary: "#C4643E",     // 호버시 더 진한 오렌지
+          secondary: "#A0522D",    // 고동색 (핵심 색상 - 링크, 강조)
+          tertiary: "#C8763F",     // 호버시 조금 더 밝은 주황빛 고동
           highlight: "rgba(217, 119, 87, 0.12)",
           textHighlight: "#FFF3CD88",
         },
