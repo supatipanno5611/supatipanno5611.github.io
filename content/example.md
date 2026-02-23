@@ -2,4 +2,4 @@
 title: 예제
 ---
 
-[[index]]
+[[home]]
