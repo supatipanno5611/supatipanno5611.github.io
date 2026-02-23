@@ -34,8 +34,8 @@ const config: QuartzConfig = {
           dark: "#1A1612",         // 제목 글자 (진한 갈색빛 검정)
           secondary: "#A0522D",    // 고동색 (핵심 색상 - 링크, 강조)
           tertiary: "#C8763F",     // 호버시 조금 더 밝은 주황빛 고동
-          highlight: "rgba(217, 119, 87, 0.12)",
-          textHighlight: "#FFF3CD88",
+          highlight: "rgba(217, 120, 87, 0.04)",
+          textHighlight: "#fff3cd37",
         },
         darkMode: {
           light: "#22272E",        // GitHub soft dark 배경
@@ -45,8 +45,8 @@ const config: QuartzConfig = {
           dark: "#CDD9E5",         // 제목 글자
           secondary: "#539BF5",    // GitHub 파란 링크
           tertiary: "#6CB6FF",     // 호버시 밝은 파랑
-          highlight: "rgba(83, 155, 245, 0.12)",
-          textHighlight: "#E3B34188",
+          highlight: "rgba(83, 156, 245, 0.04)",
+          textHighlight: "#e3b2413d",
         },
       },
     },
