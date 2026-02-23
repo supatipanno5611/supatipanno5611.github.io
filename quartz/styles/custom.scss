@@ -1,7 +1,5 @@
 @use "./base.scss";
 
-@use "./base.scss";
-
 // ─── 모바일 왼쪽 사이드바 (슬라이드 패널) ───
 .page > #quartz-body > .sidebar.left {
   @media all and (max-width: 800px) {
