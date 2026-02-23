@@ -25,8 +25,11 @@ jobs:
         run: npm ci
       - name: Build Quartz
         run: npx quartz build
-      - name: Copy standalone HTML files
-        run: cp html/*.html public/
+      - name: Copy HTML files
+        run: |
+          for f in html/*.html; do
+            sed 's|<title>|<script>if(document.getElementById("quartz-root")){window.location.href=window.location.href;}<\/script><title>|' "$f" > "public/$(basename $f)"
+          done
       - uses: actions/upload-pages-artifact@v4
         with:
           path: public
