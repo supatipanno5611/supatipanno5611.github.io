@@ -86,7 +86,30 @@
     }
 
     & > .toc {
-      display: block !important;
+      display: flex !important;
+      flex-direction: column;
+      overflow-y: visible !important;
+      height: auto !important;
+      flex: 0 0 auto !important;
+      min-height: unset !important;
+
+      & ul.toc-content {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+    }
+
+    & > .backlinks {
+      display: flex !important;
+      flex-direction: column;
+      overflow-y: visible !important;
+      height: auto !important;
+      flex: 0 0 auto !important;
+
+      & ul.overflow {
+        max-height: 300px;
+        overflow-y: auto;
+      }
     }
 
     & > * {
