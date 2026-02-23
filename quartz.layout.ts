@@ -17,7 +17,7 @@ export const defaultContentPageLayout: PageLayout = {
   left: [
     Component.PageTitle(),
     Component.Darkmode(),
-    Component.RecentNotes({ limit: 5, showTags: true }),
+    Component.RecentNotes({ title: "최근에 수정한 글",limit: 5, showTags: true }),
     Component.Search()
   ],
   right: [
