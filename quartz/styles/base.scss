@@ -229,111 +229,44 @@ a {
     }
 
     & .sidebar.left {
-  z-index: 1;
-  grid-area: grid-sidebar-left;
-  flex-direction: column;
-
-  @media all and ($mobile) {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100dvh;
-    width: 100%;
-    z-index: 200;
-    background: var(--light);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    overflow: hidden;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    gap: 0;
-
-    &.open {
-      transform: translateX(0);
-    }
-
-    // 상단: 로고 가운데 정렬
-    & .page-title {
-      order: 1;
-      text-align: center;
-      padding: 1.6rem 3.5rem 1.2rem 1.2rem;
-      border-bottom: 1px solid var(--lightgray);
-      flex-shrink: 0;
-    }
-
-    // 상단 우측: 다크모드 버튼 절대 위치 고정
-    & .darkmode {
-      order: 1;
-      align-self: flex-end;
-      position: relative;
-      margin-top: -3.2rem;
-      margin-right: 1.2rem;
-      margin-bottom: 0;
-    }
-
-    // 중간: 최근 게시글 (스크롤 가능)
-    & .recent-notes {
-      order: 2;
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 1.2rem 1.4rem;
-    }
-
-    // 하단: 검색창 전체 너비
-    & .search {
-      order: 3;
-      flex-shrink: 0;
-      padding: 1rem 1.4rem 1.4rem;
-      border-top: 1px solid var(--lightgray);
-      max-width: none;
-      width: 90%;
-
-      & #search-bar {
-        width: 100%;
-        box-sizing: border-box;
-        font-size: 1rem;
-        padding: 0.65rem 1rem;
-        border-radius: 8px;
+      z-index: 1;
+      grid-area: grid-sidebar-left;
+      flex-direction: column;
+      @media all and ($mobile) {
+        gap: 0;
+        align-items: center;
+        position: initial;
+        display: flex;
+        height: unset;
+        flex-direction: row;
+        padding: 0;
+        padding-top: 2rem;
       }
     }
-  }
-}
 
     & .sidebar.right {
-  grid-area: grid-sidebar-right;
-  margin-right: 0;
-  flex-direction: column;
-  @media all and ($mobile) {
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100dvh;
-    width: 100%;
-    z-index: 200;
-    background: var(--light);
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    overflow-y: auto;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    padding: 1.6rem 1.4rem;
-    gap: 1rem;
+      grid-area: grid-sidebar-right;
+      margin-right: 0;
+      flex-direction: column;
+      @media all and ($mobile) {
+        margin-left: inherit;
+        margin-right: inherit;
+      }
+      @media all and not ($desktop) {
+        position: initial;
+        height: unset;
+        width: 100%;
+        flex-direction: row;
+        padding: 0;
+        & > * {
+          flex: 1;
+          max-height: 24rem;
+        }
+        & > .toc {
+          display: none;
+        }
+      }
     }
-
-    &.open {
-      transform: translateX(0);
-    }
-
-    & > .toc {
-      display: block;
-    }
-  }
     & .page-header,
     & .page-footer {
       margin-top: 1rem;
@@ -373,18 +306,6 @@ a {
     & footer {
       margin-left: 0;
     }
-  }
-}
-
-.sidebar-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 199;
-  background: rgba(0, 0, 0, 0.3);
-
-  &.active {
-    display: block;
   }
 }
 
