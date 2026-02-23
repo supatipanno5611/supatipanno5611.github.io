@@ -19,6 +19,7 @@ document.addEventListener("nav", () => {
   }
 
   const themeChange = (e: MediaQueryListEvent) => {
+    if (localStorage.getItem("theme")) return
     const newTheme = e.matches ? "dark" : "light"
     document.documentElement.setAttribute("saved-theme", newTheme)
     localStorage.setItem("theme", newTheme)
