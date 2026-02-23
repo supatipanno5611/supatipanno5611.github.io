@@ -29,8 +29,11 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
     if (text) {
       const segments: (string | JSX.Element)[] = []
 
-      if (fileData.dates) {
-        segments.push(<Date date={getDate(cfg, fileData)!} locale={cfg.locale} />)
+      if (fileData.dates?.created) {
+        segments.push(<span>작성: <Date date={fileData.dates.created} locale={cfg.locale} /></span>)
+      }
+      if (fileData.dates?.modified) {
+        segments.push(<span>수정: <Date date={fileData.dates.modified} locale={cfg.locale} /></span>)
       }
 
       // Display reading time if enabled
