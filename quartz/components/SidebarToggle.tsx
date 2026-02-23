@@ -39,18 +39,18 @@ document.addEventListener("nav", () => {
 
     // 사이드바가 열려있을 때 내부 터치인지 확인
     if (isLeftOpen) {
-      const sidebarWidth = window.innerWidth * 0.85
+      const sidebarWidth = window.innerWidth * 0.9
       touchStartedInsideSidebar = touchStartX < sidebarWidth
 
-      // 바깥 15% 탭하면 바로 닫기
+      // 바깥 10% 탭하면 바로 닫기
       if (!touchStartedInsideSidebar) {
         closeAll()
       }
     } else if (isRightOpen) {
-      const sidebarStart = window.innerWidth * 0.15
+      const sidebarStart = window.innerWidth * 0.1
       touchStartedInsideSidebar = touchStartX > sidebarStart
 
-      // 바깥 15% 탭하면 바로 닫기
+      // 바깥 10% 탭하면 바로 닫기
       if (!touchStartedInsideSidebar) {
         closeAll()
       }
