@@ -11,7 +11,7 @@ const config: QuartzConfig = {
     pageTitle: "viriya",
     pageTitleSuffix: " · buddhadhamma.kr",
     enableSPA: true,
-    enablePopovers: true,
+    enablePopovers: false,
     analytics: null,
     locale: "ko-KR",
     baseUrl: "buddhadhamma.kr",
@@ -80,7 +80,7 @@ const config: QuartzConfig = {
       Plugin.TagPage(),
       Plugin.ContentIndex({
         enableSiteMap: true,
-        enableRSS: true,
+        enableRSS: false,
       }),
       Plugin.Assets(),
       Plugin.Static(),
