@@ -109,6 +109,6 @@
 
 // ─── 선택된 텍스트 색상 ───
 ::selection {
-  background: color-mix(in srgb, var(--tertiary) 25%, rgba(255, 255, 255, 0));
+  background: color-mix(in srgb, var(--tertiary) 15%, rgba(255, 255, 255, 0));
   color: var(--darkgray);
 }
