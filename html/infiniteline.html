@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Infinite Line</title>
+    <style>
+:root {
+    --line-weight: 4px; /* 선의 굵기 고정 */
+}
+
+body, html {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background-color: #f0f0f0;
+    overflow: hidden;
+    display: flex; justify-content: center; align-items: center;
+}
+
+#main-container {
+    position: relative;
+    width: 90vw;
+    height: 100vh; /* 높이를 충분히 확보 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 1s cubic-bezier(0.6, 0, 0.4, 1);
+}
+
+.line-group {
+    position: absolute;
+    width: 100%;
+    height: var(--line-weight); /* 굵기 고정 */
+    display: flex;
+    justify-content: space-between;
+    transform-origin: center center;
+}
+
+.segment {
+    width: 33.3333%;
+    height: 100%;
+    background-color: #000;
+}
+
+/* 새로 생성될 선분의 초기 상태 */
+.line-group.new {
+    opacity: 0;
+    /* 처음엔 1/3 크기로 작게 시작하지만, 두께는 CSS에 의해 var(--line-weight)로 유지됨 */
+    transform: translateY(150px) scaleX(0.3333); 
+}
+    </style>
+</head>
+<body>
+    <div id="viewport">
+        <div id="main-container">
+            <div class="line-group initial">
+                <div class="segment left"></div>
+                <div class="segment right"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const container = document.getElementById('main-container');
+let isAnimating = false;
+
+document.body.addEventListener('click', () => {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    // 1. 새로운 선분 생성
+    const newLineGroup = document.createElement('div');
+    newLineGroup.className = 'line-group new';
+    newLineGroup.innerHTML = `
+        <div class="segment left"></div>
+        <div class="segment right"></div>
+    `;
+    container.appendChild(newLineGroup);
+
+    newLineGroup.offsetHeight; // Force reflow
+
+    // 2. 아래에서 올라와 가운데 빈칸에 안착 (두께는 유지, 길이는 1/3)
+    newLineGroup.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s';
+    newLineGroup.style.transform = 'translateY(0) scaleX(0.3333)';
+    newLineGroup.style.opacity = '1';
+
+    setTimeout(() => {
+        // 3. 클로즈업 애니메이션
+        // 컨테이너 전체를 확대하지 않고, 선분들의 scaleX를 조절합니다.
+        
+        const initialLine = container.querySelector('.line-group.initial');
+        
+        // 기존 선분은 화면 밖으로 밀려나도록 scaleX 확대
+        initialLine.style.transition = 'transform 1s cubic-bezier(0.6, 0, 0.4, 1), opacity 1s';
+        initialLine.style.transform = 'scaleX(3)'; 
+        initialLine.style.opacity = '0'; // 자연스럽게 사라짐
+
+        // 새로 들어온 선분은 scaleX(0.333)에서 scaleX(1)이 되며 전체 길이를 채움
+        newLineGroup.style.transition = 'transform 1s cubic-bezier(0.6, 0, 0.4, 1)';
+        newLineGroup.style.transform = 'scaleX(1)';
+
+        setTimeout(() => {
+            // 4. 리셋 (눈속임)
+            // 애니메이션 없이 상태를 초기화하여 무한 루프 준비
+            initialLine.remove();
+            newLineGroup.classList.remove('new');
+            newLineGroup.classList.add('initial');
+            newLineGroup.style.transition = 'none';
+            
+            isAnimating = false;
+        }, 1000);
+    }, 850);
+});
+    </script>
+</body>
+</html>
