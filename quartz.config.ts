@@ -22,7 +22,7 @@ const config: QuartzConfig = {
       cdnCaching: true,
       typography: {
         header: "Gowun Batang",
-        body: "Gowun Dodum",
+        body: "Gowun Batang",
         code: "IBM Plex Mono",
       },
       colors: {
