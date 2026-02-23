@@ -6,39 +6,26 @@ const SidebarToggle: QuartzComponent = () => {
 
 SidebarToggle.afterDOMLoaded = `
 document.addEventListener("nav", () => {
-  // 백드롭 생성
-  let backdrop = document.querySelector(".sidebar-backdrop")
-  if (!backdrop) {
-    backdrop = document.createElement("div")
-    backdrop.className = "sidebar-backdrop"
-    document.body.appendChild(backdrop)
-  }
-
   const leftSidebar = document.querySelector(".sidebar.left")
   const rightSidebar = document.querySelector(".sidebar.right")
 
   function openLeft() {
     leftSidebar?.classList.add("open")
     rightSidebar?.classList.remove("open")
-    backdrop.classList.add("active")
   }
 
   function openRight() {
     rightSidebar?.classList.add("open")
     leftSidebar?.classList.remove("open")
-    backdrop.classList.add("active")
   }
 
   function closeAll() {
     leftSidebar?.classList.remove("open")
     rightSidebar?.classList.remove("open")
-    backdrop.classList.remove("active")
   }
 
   // 네비게이션 시 사이드바 상태 초기화
   closeAll()
-
-  backdrop.addEventListener("click", closeAll)
 
   // 스와이프 감지
   let touchStartX = 0
