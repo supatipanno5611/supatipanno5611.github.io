@@ -83,6 +83,7 @@ export default (() => {
         )}
 
         <link rel="icon" href={iconPath} type="image/svg+xml" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="description" content={description} />
         <meta name="generator" content="Quartz" />
 

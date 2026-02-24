@@ -1,0 +1,16 @@
+{
+  "name": "viriya · buddhadhamma.kr",
+  "short_name": "viriya",
+  "description": "불교 공부 기록 사이트",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F7",
+  "theme_color": "#FAF9F7",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
