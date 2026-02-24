@@ -119,17 +119,6 @@
   }
 }
 
-// ─── 글자 크기 ───
-// 본문 글자 크기
-.body {
-  font-size: 16px;  // 원하는 크기로
-}
-
-// 사이드바 글자 크기
-.sidebar {
-  font-size: 14px;
-}
-
 // ─── 선택된 텍스트 색상 ───
 ::selection {
   background: color-mix(in srgb, var(--tertiary) 15%, rgba(255, 255, 255, 0));
