@@ -124,3 +124,27 @@
   background: color-mix(in srgb, var(--tertiary) 15%, rgba(255, 255, 255, 0));
   color: var(--darkgray);
 }
+
+// ─── 작성일 툴팁 ───
+.modified-date-wrapper {
+  position: relative;
+  cursor: default;
+
+  .created-date-tooltip {
+    display: none;
+    position: absolute;
+    top: -2rem;
+    left: 0;
+    background: var(--lightgray);
+    color: var(--darkgray);
+    font-size: 0.85em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  &:hover .created-date-tooltip {
+    display: block;
+  }
+}
