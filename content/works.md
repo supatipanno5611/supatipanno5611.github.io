@@ -5,5 +5,7 @@ modified: 2026-02-24
 tags:
 title: 인터렉션 작업물
 ---
-- [Infinite Line](/works/infiniteline){target="_blank"}
-- [Camera Focus](/works/camerafocus){target="_blank"}
+<ul>
+  <li><a href="/works/infiniteline.html" target="_blank">Infinite Line</a></li>
+  <li><a href="/works/focus.html" target="_blank">Camera Focus</a></li>
+</ul>
