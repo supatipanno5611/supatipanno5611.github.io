@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Focus — 카메라 초점 시뮬레이터</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ───────────────────────────────
+       뷰파인더 영역
+  ─────────────────────────────────── -->
+  <main class="viewfinder-wrap">
+
+    <!-- 뷰파인더 프레임 -->
+    <div class="viewfinder" id="viewfinder">
+
+      <!-- ── SVG 씬: 3레이어 ── -->
+      <div class="scene" id="scene">
+
+        <!-- 배경 레이어 (산 + 보케 빛망울) -->
+        <svg class="layer layer--bg" id="layer-bg"
+             viewBox="0 0 390 500" preserveAspectRatio="xMidYMid slice"
+             xmlns="http://www.w3.org/2000/svg">
+
+          <!-- 하늘 그라디언트 -->
+          <defs>
+            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1a2a4a"/>
+              <stop offset="100%" stop-color="#3a5a8a"/>
+            </linearGradient>
+            <radialGradient id="bokehGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffe8a0" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#ffcc44" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- 하늘 배경 -->
+          <rect width="390" height="500" fill="url(#skyGrad)"/>
+
+          <!-- 산 실루엣 -->
+          <polygon class="mountain mountain--far"
+                   points="0,320 60,200 120,260 180,160 260,230 320,150 390,220 390,500 0,500"
+                   fill="#0f1e36"/>
+          <polygon class="mountain mountain--near"
+                   points="0,380 80,280 150,320 220,250 300,300 390,270 390,500 0,500"
+                   fill="#162840"/>
+
+          <!-- 보케 빛망울들 (배경이 blur될 때 크기/투명도 변화) -->
+          <circle class="bokeh" cx="40"  cy="80"  r="6"  fill="url(#bokehGrad)" data-base-r="6"/>
+          <circle class="bokeh" cx="100" cy="50"  r="9"  fill="url(#bokehGrad)" data-base-r="9"/>
+          <circle class="bokeh" cx="170" cy="90"  r="5"  fill="url(#bokehGrad)" data-base-r="5"/>
+          <circle class="bokeh" cx="230" cy="40"  r="11" fill="url(#bokehGrad)" data-base-r="11"/>
+          <circle class="bokeh" cx="300" cy="70"  r="7"  fill="url(#bokehGrad)" data-base-r="7"/>
+          <circle class="bokeh" cx="355" cy="110" r="8"  fill="url(#bokehGrad)" data-base-r="8"/>
+          <circle class="bokeh" cx="70"  cy="140" r="4"  fill="url(#bokehGrad)" data-base-r="4"/>
+          <circle class="bokeh" cx="270" cy="130" r="10" fill="url(#bokehGrad)" data-base-r="10"/>
+        </svg>
+
+        <!-- 중경 레이어 (인물 실루엣) -->
+        <svg class="layer layer--mid" id="layer-mid"
+             viewBox="0 0 390 500" preserveAspectRatio="xMidYMid slice"
+             xmlns="http://www.w3.org/2000/svg">
+
+          <!-- 인물 실루엣 -->
+          <g class="figure" transform="translate(155, 140)">
+            <!-- 머리 -->
+            <circle cx="40" cy="30" r="22" fill="#1a1a2e"/>
+            <!-- 몸통 -->
+            <path d="M18,52 Q10,90 8,140 L72,140 Q70,90 62,52 Z" fill="#1a1a2e"/>
+            <!-- 팔 왼쪽 -->
+            <path d="M18,65 Q0,90 5,120 L15,118 Q12,92 24,70 Z" fill="#1a1a2e"/>
+            <!-- 팔 오른쪽 -->
+            <path d="M62,65 Q80,90 75,120 L65,118 Q68,92 56,70 Z" fill="#1a1a2e"/>
+            <!-- 다리 왼쪽 -->
+            <path d="M20,138 Q16,190 18,230 L36,230 Q36,190 32,138 Z" fill="#1a1a2e"/>
+            <!-- 다리 오른쪽 -->
+            <path d="M60,138 Q64,190 62,230 L44,230 Q44,190 48,138 Z" fill="#1a1a2e"/>
+          </g>
+
+          <!-- 바닥 잔디 실루엣 -->
+          <ellipse cx="195" cy="420" rx="180" ry="30" fill="#0d2010" opacity="0.7"/>
+        </svg>
+
+        <!-- 전경 레이어 (꽃과 풀잎) -->
+        <svg class="layer layer--fg" id="layer-fg"
+             viewBox="0 0 390 500" preserveAspectRatio="xMidYMid slice"
+             xmlns="http://www.w3.org/2000/svg">
+
+          <defs>
+            <radialGradient id="petalGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffb6c8"/>
+              <stop offset="100%" stop-color="#ff6688"/>
+            </radialGradient>
+          </defs>
+
+          <!-- 줄기들 -->
+          <line x1="80"  y1="500" x2="90"  y2="360" stroke="#2d5a1b" stroke-width="4" stroke-linecap="round"/>
+          <line x1="180" y1="500" x2="185" y2="340" stroke="#2d5a1b" stroke-width="5" stroke-linecap="round"/>
+          <line x1="290" y1="500" x2="285" y2="370" stroke="#2d5a1b" stroke-width="4" stroke-linecap="round"/>
+          <line x1="340" y1="500" x2="335" y2="400" stroke="#2d5a1b" stroke-width="3" stroke-linecap="round"/>
+          <line x1="30"  y1="500" x2="35"  y2="420" stroke="#2d5a1b" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- 잎들 -->
+          <ellipse cx="70"  cy="400" rx="20" ry="8"  fill="#3a7022" transform="rotate(-30,70,400)"/>
+          <ellipse cx="190" cy="390" rx="25" ry="9"  fill="#3a7022" transform="rotate(20,190,390)"/>
+          <ellipse cx="280" cy="400" rx="18" ry="7"  fill="#3a7022" transform="rotate(-15,280,400)"/>
+
+          <!-- 꽃 1 (중앙 큰 꽃) -->
+          <g class="flower" transform="translate(185, 340)" data-af-target="fg">
+            <circle cx="0" cy="0" r="10" fill="#ffee88"/>
+            <ellipse cx="0"  cy="-22" rx="10" ry="16" fill="url(#petalGrad)" opacity="0.9"/>
+            <ellipse cx="0"  cy="22"  rx="10" ry="16" fill="url(#petalGrad)" opacity="0.9"/>
+            <ellipse cx="-22" cy="0" rx="16" ry="10" fill="url(#petalGrad)" opacity="0.9"/>
+            <ellipse cx="22"  cy="0" rx="16" ry="10" fill="url(#petalGrad)" opacity="0.9"/>
+            <ellipse cx="-16" cy="-16" rx="10" ry="16" fill="url(#petalGrad)" opacity="0.85" transform="rotate(-45,-16,-16)"/>
+            <ellipse cx="16"  cy="-16" rx="10" ry="16" fill="url(#petalGrad)" opacity="0.85" transform="rotate(45,16,-16)"/>
+            <ellipse cx="-16" cy="16"  rx="10" ry="16" fill="url(#petalGrad)" opacity="0.85" transform="rotate(45,-16,16)"/>
+            <ellipse cx="16"  cy="16"  rx="10" ry="16" fill="url(#petalGrad)" opacity="0.85" transform="rotate(-45,16,16)"/>
+            <circle cx="0" cy="0" r="12" fill="#ffee88"/>
+          </g>
+
+          <!-- 꽃 2 (왼쪽 작은 꽃) -->
+          <g class="flower flower--small" transform="translate(88, 360)">
+            <ellipse cx="0"  cy="-14" rx="7" ry="11" fill="#ffaacc" opacity="0.9"/>
+            <ellipse cx="0"  cy="14"  rx="7" ry="11" fill="#ffaacc" opacity="0.9"/>
+            <ellipse cx="-14" cy="0" rx="11" ry="7"  fill="#ffaacc" opacity="0.9"/>
+            <ellipse cx="14"  cy="0" rx="11" ry="7"  fill="#ffaacc" opacity="0.9"/>
+            <circle cx="0" cy="0" r="8" fill="#ffe066"/>
+          </g>
+
+          <!-- 꽃 3 (오른쪽) -->
+          <g class="flower flower--small" transform="translate(288, 368)">
+            <ellipse cx="0"  cy="-13" rx="6" ry="10" fill="#ff8899" opacity="0.9"/>
+            <ellipse cx="0"  cy="13"  rx="6" ry="10" fill="#ff8899" opacity="0.9"/>
+            <ellipse cx="-13" cy="0" rx="10" ry="6"  fill="#ff8899" opacity="0.9"/>
+            <ellipse cx="13"  cy="0" rx="10" ry="6"  fill="#ff8899" opacity="0.9"/>
+            <circle cx="0" cy="0" r="7" fill="#ffdd44"/>
+          </g>
+
+          <!-- 앞쪽 풀잎들 (가장 전경) -->
+          <path d="M0,500 Q10,430 20,410 Q25,440 15,500 Z"   fill="#1e4010"/>
+          <path d="M350,500 Q360,440 375,415 Q385,445 380,500 Z" fill="#1e4010"/>
+          <path d="M140,500 Q148,450 155,430 Q162,455 158,500 Z" fill="#255215"/>
+          <path d="M230,500 Q235,460 245,438 Q252,462 248,500 Z" fill="#255215"/>
+        </svg>
+
+      </div><!-- /.scene -->
+
+      <!-- ── 뷰파인더 오버레이 ── -->
+      <div class="vf-overlay" id="vf-overlay">
+
+        <!-- 격자선 (룰 오브 서드) -->
+        <svg class="vf-grid" viewBox="0 0 390 500" xmlns="http://www.w3.org/2000/svg">
+          <line x1="130" y1="0"   x2="130" y2="500" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+          <line x1="260" y1="0"   x2="260" y2="500" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+          <line x1="0"   y1="167" x2="390" y2="167" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+          <line x1="0"   y1="334" x2="390" y2="334" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+        </svg>
+
+        <!-- 코너 브라켓 -->
+        <div class="vf-corners">
+          <span class="corner corner--tl"></span>
+          <span class="corner corner--tr"></span>
+          <span class="corner corner--bl"></span>
+          <span class="corner corner--br"></span>
+        </div>
+
+        <!-- AF 포인트들 (각 레이어에 대응) -->
+        <!-- 배경 AF 포인트 -->
+        <div class="af-point" id="af-bg"
+             data-layer="bg"
+             style="top: 28%; left: 50%;">
+          <div class="af-point__box"></div>
+          <span class="af-point__label">배경</span>
+        </div>
+
+        <!-- 중경 AF 포인트 -->
+        <div class="af-point" id="af-mid"
+             data-layer="mid"
+             style="top: 48%; left: 50%;">
+          <div class="af-point__box"></div>
+          <span class="af-point__label">중경</span>
+        </div>
+
+        <!-- 전경 AF 포인트 -->
+        <div class="af-point" id="af-fg"
+             data-layer="fg"
+             style="top: 72%; left: 50%;">
+          <div class="af-point__box"></div>
+          <span class="af-point__label">전경</span>
+        </div>
+
+        <!-- HUD 정보 표시 (좌상단: 조리개) -->
+        <div class="vf-hud vf-hud--tl">
+          <span class="hud-label">f /</span><span class="hud-value" id="hud-aperture">1.4</span>
+        </div>
+
+        <!-- HUD 정보 표시 (우상단: 초점 거리) -->
+        <div class="vf-hud vf-hud--tr">
+          <span class="hud-value" id="hud-distance">∞</span>
+        </div>
+
+        <!-- HUD 하단 중앙: AF 상태 -->
+        <div class="vf-hud vf-hud--bc">
+          <span id="hud-af-text">초점 탐색 중</span>
+        </div>
+
+      </div><!-- /.vf-overlay -->
+
+    </div><!-- /.viewfinder -->
+
+  </main><!-- /.viewfinder-wrap -->
+
+
+  <!-- ───────────────────────────────
+       심도 범위 인디케이터
+  ─────────────────────────────────── -->
+  <section class="dof-indicator" id="dof-indicator" aria-label="피사계심도 범위">
+    <div class="dof-bar-wrap">
+      <!-- 피사체 위치 마커들 -->
+      <div class="dof-subject" id="dof-fg-dot"  data-label="전경" style="left: 10%"></div>
+      <div class="dof-subject" id="dof-mid-dot" data-label="중경" style="left: 46%"></div>
+      <div class="dof-subject" id="dof-bg-dot"  data-label="배경" style="left: 87%"></div>
+
+      <!-- 선명 구간 블록 -->
+      <div class="dof-range" id="dof-range"></div>
+
+      <!-- 현재 포커스 마커 -->
+      <div class="dof-focus-marker" id="dof-focus-marker"></div>
+    </div>
+    <div class="dof-labels">
+      <span>0.3m</span>
+      <span>∞</span>
+    </div>
+  </section>
+
+
+  <!-- ───────────────────────────────
+       컨트롤 패널
+  ─────────────────────────────────── -->
+  <section class="controls" id="controls">
+
+    <!-- 초점 거리 슬라이더 -->
+    <div class="slider-wrap slider-wrap--focus">
+      <div class="slider-header">
+        <span class="slider-label">초점 거리</span>
+        <span class="slider-value" id="label-distance">∞</span>
+      </div>
+      <div class="slider-track-wrap">
+        <input
+          type="range"
+          id="slider-focus"
+          class="slider slider--focus"
+          min="0" max="1000" step="1" value="850"
+          aria-label="초점 거리 슬라이더"
+        />
+      </div>
+    </div>
+
+    <!-- 조리개 슬라이더 -->
+    <div class="slider-wrap slider-wrap--aperture">
+      <div class="slider-header">
+        <span class="slider-label">조리개</span>
+        <span class="slider-value slider-value--aperture" id="label-aperture">f / 1.4</span>
+      </div>
+      <div class="slider-track-wrap">
+        <input
+          type="range"
+          id="slider-aperture"
+          class="slider slider--aperture"
+          min="0" max="7" step="1" value="0"
+          aria-label="조리개 슬라이더"
+        />
+      </div>
+      <!-- 조리개 스탑 눈금 라벨 -->
+      <div class="aperture-stops" aria-hidden="true">
+        <span>1.4</span>
+        <span>2</span>
+        <span>2.8</span>
+        <span>4</span>
+        <span>5.6</span>
+        <span>8</span>
+        <span>11</span>
+        <span>16</span>
+      </div>
+    </div>
+
+  </section><!-- /.controls -->
+
+
+  <script src="script.js"></script>
+</body>
+</html>

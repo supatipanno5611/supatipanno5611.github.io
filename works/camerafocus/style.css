@@ -1,0 +1,636 @@
+/* ═══════════════════════════════════════════════
+   FOCUS — 카메라 초점 시뮬레이터
+   style.css
+   폰트: Share Tech Mono (HUD/숫자), Noto Sans KR (한글)
+   테마: 카메라 뷰파인더 — 딥블랙 + 앰버 액센트
+═══════════════════════════════════════════════ */
+
+/* ── 커스텀 프로퍼티 ─────────────────────────── */
+:root {
+  --c-bg:          #0a0a0c;
+  --c-panel:       #111116;
+  --c-panel-2:     #18181f;
+  --c-border:      #2a2a35;
+  --c-border-dim:  rgba(255,255,255,0.07);
+
+  --c-amber:       #f5a623;
+  --c-amber-dim:   rgba(245,166,35,0.25);
+  --c-amber-glow:  rgba(245,166,35,0.08);
+  --c-green:       #39ff88;
+  --c-green-dim:   rgba(57,255,136,0.3);
+  --c-white-dim:   rgba(255,255,255,0.55);
+  --c-white-faint: rgba(255,255,255,0.15);
+
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-sans: 'Noto Sans KR', sans-serif;
+
+  --vf-radius:  12px;
+  --dial-size:  130px;
+  --dial-size-sm: 100px;
+
+  --transition-fast:   0.12s ease;
+  --transition-medium: 0.25s ease;
+  --transition-slow:   0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ── 리셋 & 베이스 ───────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--c-bg);
+  color: var(--c-white-dim);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  touch-action: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100dvh;
+}
+
+
+/* ═══════════════════════════════════════════════
+   VIEWFINDER
+═══════════════════════════════════════════════ */
+
+.viewfinder-wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 12px 0;
+  min-height: 0;
+}
+
+.viewfinder {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 100%;
+  border-radius: var(--vf-radius);
+  overflow: hidden;
+  background: #0a0f1a;
+  /* 바깥 테두리: 카메라 바디 느낌 */
+  box-shadow:
+    0 0 0 1px var(--c-border),
+    0 0 0 3px #0a0a0c,
+    0 0 30px rgba(0,0,0,0.8),
+    inset 0 0 60px rgba(0,0,0,0.4);
+}
+
+
+/* ── SVG 씬 & 레이어 ─────────────────────────── */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* CSS transition은 JS에서 개별 제어하므로 기본만 */
+  will-change: filter;
+}
+
+/* 각 레이어의 초기 filter 상태 — JS가 덮어씀 */
+.layer--bg  { z-index: 1; }
+.layer--mid { z-index: 2; }
+.layer--fg  { z-index: 3; }
+
+
+/* ── 뷰파인더 오버레이 ────────────────────────── */
+
+.vf-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none; /* AF 포인트만 pointer-events: auto */
+}
+
+/* 격자선 */
+.vf-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 코너 브라켓 */
+.vf-corners {
+  position: absolute;
+  inset: 0;
+}
+
+.corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--c-amber);
+  border-style: solid;
+  opacity: 0.7;
+}
+
+.corner--tl { top: 10px;    left: 10px;    border-width: 2px 0 0 2px; border-radius: 3px 0 0 0; }
+.corner--tr { top: 10px;    right: 10px;   border-width: 2px 2px 0 0; border-radius: 0 3px 0 0; }
+.corner--bl { bottom: 10px; left: 10px;    border-width: 0 0 2px 2px; border-radius: 0 0 0 3px; }
+.corner--br { bottom: 10px; right: 10px;   border-width: 0 2px 2px 0; border-radius: 0 0 3px 0; }
+
+
+/* ── HUD ─────────────────────────────────────── */
+
+.vf-hud {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--c-amber);
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+.vf-hud--tl { top: 14px; left: 16px; }
+.vf-hud--tr { top: 14px; right: 16px; }
+.vf-hud--bc {
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.1em;
+  transition: color var(--transition-medium);
+}
+.vf-hud--bc.is-locked {
+  color: var(--c-green);
+}
+
+.hud-label {
+  opacity: 0.6;
+  font-size: 10px;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+.hud-value {
+  font-size: 14px;
+  font-weight: normal;
+}
+
+
+/* ── AF 포인트 ───────────────────────────────── */
+
+.af-point {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.af-point__box {
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: 3px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.af-point__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.3);
+  transition: color var(--transition-fast);
+}
+
+/* 활성(초점 맞는) 상태 */
+.af-point.is-active .af-point__box {
+  border-color: var(--c-green);
+  box-shadow: 0 0 8px var(--c-green-dim), inset 0 0 4px rgba(57,255,136,0.05);
+}
+.af-point.is-active .af-point__label {
+  color: var(--c-green);
+}
+
+/* AF 확정 깜빡임 애니메이션 */
+.af-point.is-locking .af-point__box {
+  animation: af-lock 0.35s ease forwards;
+}
+
+@keyframes af-lock {
+  0%   { border-color: rgba(255,255,255,0.3); box-shadow: none; }
+  30%  { border-color: var(--c-green); box-shadow: 0 0 16px var(--c-green), 0 0 32px var(--c-green-dim); }
+  60%  { border-color: var(--c-green); box-shadow: 0 0 6px var(--c-green-dim); }
+  100% { border-color: var(--c-green); box-shadow: 0 0 8px var(--c-green-dim); }
+}
+
+/* 탭 피드백 */
+.af-point:active .af-point__box {
+  border-color: rgba(255,255,255,0.7);
+}
+
+
+/* ═══════════════════════════════════════════════
+   DOF INDICATOR
+═══════════════════════════════════════════════ */
+
+.dof-indicator {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 480px;
+  padding: 10px 20px 6px;
+}
+
+.dof-bar-wrap {
+  position: relative;
+  height: 6px;
+  background: var(--c-border);
+  border-radius: 3px;
+  margin-bottom: 6px;
+}
+
+/* 피사체 위치 점 */
+.dof-subject {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c-white-faint);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  z-index: 3;
+}
+
+/* 피사체 점이 선명 구간 안에 들어오면 강조 */
+.dof-subject.in-range {
+  background: var(--c-amber);
+  border-color: var(--c-amber);
+  box-shadow: 0 0 6px var(--c-amber-dim);
+}
+
+/* 라벨 (::after pseudo) */
+.dof-subject::after {
+  content: attr(data-label);
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+}
+
+/* 선명 구간 블록 */
+.dof-range {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: var(--c-amber);
+  opacity: 0.35;
+  border-radius: 3px;
+  transition: left var(--transition-fast), width var(--transition-fast);
+  z-index: 1;
+}
+
+/* 현재 포커스 마커 */
+.dof-focus-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 16px;
+  background: var(--c-amber);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--c-amber-dim);
+  transition: left var(--transition-fast);
+  z-index: 4;
+}
+
+.dof-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.06em;
+  padding: 0 2px;
+}
+
+
+/* ═══════════════════════════════════════════════
+   CONTROLS (슬라이더 패널)
+═══════════════════════════════════════════════ */
+
+.controls {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 20px 18px;
+}
+
+
+/* ── 슬라이더 래퍼 ─────────────────────────── */
+
+.slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.slider-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+}
+
+.slider-value {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: var(--c-amber);
+  min-width: 52px;
+  text-align: right;
+}
+
+.slider-value--aperture {
+  color: #80aaff;
+}
+
+
+/* ── 슬라이더 트랙 컨테이너 ─────────────────── */
+
+.slider-track-wrap {
+  position: relative;
+  height: 36px;          /* 터치 영역 확보 */
+  display: flex;
+  align-items: center;
+}
+
+
+/* ── range input 공통 리셋 ──────────────────── */
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* 트랙 배경 (JS가 --pct CSS 변수로 채워진 부분 색 조절) */
+.slider--focus {
+  background: linear-gradient(
+    to right,
+    var(--c-amber) 0%,
+    var(--c-amber) var(--pct, 85%),
+    var(--c-border) var(--pct, 85%),
+    var(--c-border) 100%
+  );
+}
+
+.slider--aperture {
+  background: linear-gradient(
+    to right,
+    #80aaff 0%,
+    #80aaff var(--pct, 0%),
+    var(--c-border) var(--pct, 0%),
+    var(--c-border) 100%
+  );
+}
+
+/* ── Webkit thumb ───────────────────────────── */
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.12);
+  cursor: grab;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.slider--focus::-webkit-slider-thumb {
+  background: radial-gradient(circle at 35% 35%, #ffd060, var(--c-amber));
+  box-shadow: 0 0 0 4px var(--c-amber-dim), 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.slider--focus:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 7px var(--c-amber-dim), 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.slider--aperture::-webkit-slider-thumb {
+  background: radial-gradient(circle at 35% 35%, #b0ccff, #80aaff);
+  box-shadow: 0 0 0 4px rgba(128,170,255,0.2), 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.slider--aperture:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 7px rgba(128,170,255,0.25), 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* ── Firefox thumb ──────────────────────────── */
+
+.slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.12);
+  cursor: grab;
+}
+
+.slider--focus::-moz-range-thumb {
+  background: var(--c-amber);
+  box-shadow: 0 0 0 4px var(--c-amber-dim);
+}
+
+.slider--aperture::-moz-range-thumb {
+  background: #80aaff;
+  box-shadow: 0 0 0 4px rgba(128,170,255,0.2);
+}
+
+/* Firefox 트랙 */
+.slider--focus::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--c-border);
+}
+
+.slider--aperture::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--c-border);
+}
+
+
+/* ── 조리개 스탑 눈금 라벨 ─────────────────── */
+
+.aperture-stops {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  /* thumb 중심이 트랙 끝단에 위치하므로 thumb 반폭(12px)만큼 양쪽 패딩 */
+  padding: 0 12px;
+}
+
+.aperture-stops span {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: rgba(180,200,255,0.35);
+  letter-spacing: 0.02em;
+  text-align: center;
+  flex: 1;
+}
+
+/* 현재 선택된 스탑 강조 (JS가 .is-active 클래스 토글) */
+.aperture-stops span.is-active {
+  color: #80aaff;
+  font-size: 9.5px;
+}
+
+
+/* ═══════════════════════════════════════════════
+   BOKEH 빛망울 (SVG 내 circle — JS가 r/opacity 조절)
+═══════════════════════════════════════════════ */
+
+.bokeh {
+  will-change: r, opacity;
+  /* SVG 속성 transition은 CSS로 안 되므로 JS에서 처리 */
+}
+
+
+/* ═══════════════════════════════════════════════
+   AF 탭 힌트 오버레이 (최초 진입 온보딩)
+═══════════════════════════════════════════════ */
+
+.onboarding-hint {
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+  animation: hint-fade 3.5s ease forwards;
+}
+
+@keyframes hint-fade {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+/* ═══════════════════════════════════════════════
+   유틸리티 / 접근성
+═══════════════════════════════════════════════ */
+
+/* 포커스 링 제거 (touch UI) */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--c-amber);
+  outline-offset: 2px;
+}
+
+/* 모션 감소 선호 시 애니메이션 비활성 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════
+   반응형 — 가로 모드 / 큰 화면 보정
+═══════════════════════════════════════════════ */
+
+@media (max-height: 700px) {
+  .controls {
+    padding: 6px 16px 10px;
+    gap: 6px;
+  }
+
+  .dof-indicator {
+    padding: 6px 20px 4px;
+  }
+
+  .slider-track-wrap {
+    height: 28px;
+  }
+}
+
+@media (max-height: 580px) {
+  .controls {
+    padding: 4px 14px 8px;
+    gap: 4px;
+  }
+}
+
+/* 데스크탑: 세로 중앙 배치 */
+@media (min-width: 600px) {
+  body {
+    justify-content: center;
+  }
+
+  .viewfinder-wrap {
+    padding: 16px 16px 0;
+  }
+}
