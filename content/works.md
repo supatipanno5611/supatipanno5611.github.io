@@ -7,5 +7,5 @@ title: 인터렉션 작업물
 ---
 <ul>
   <li><a href="/works/infiniteline.html" target="_blank">Infinite Line</a></li>
-  <li><a href="/works/focus.html" target="_blank">Camera Focus</a></li>
+  <li><a href="/works/camerafocus.html" target="_blank">Camera Focus</a></li>
 </ul>
