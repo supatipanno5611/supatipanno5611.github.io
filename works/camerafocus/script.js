@@ -4,11 +4,10 @@
    FOCUS — 카메라 초점 시뮬레이터  ·  script.js
 ═══════════════════════════════════════════════ */
 
-/* ─── 레이어 설정 ───────────────────────────── */
+/* ─── 레이어 설정 (배경·전경 2개) ───────────── */
 const LAYERS = {
-  bg:  { focusDist: 8.5, barPos: 0.87 },
-  mid: { focusDist: 5.0, barPos: 0.46 },
-  fg:  { focusDist: 1.5, barPos: 0.10 },
+  bg: { focusDist: 8.5 },
+  fg: { focusDist: 1.5 },
 };
 
 /* ─── 조리개 스탑 ───────────────────────────── */
@@ -17,8 +16,8 @@ const APERTURE_COUNT = APERTURE_STOPS.length;
 
 /* ─── blur 계수 ─────────────────────────────── */
 const BLUR_SCALE    = 2.8;
-const BLUR_MULT_MAX = 3.0;
-const BLUR_MULT_MIN = 0.25;
+const BLUR_MULT_MAX = 3.0;   // F1.4 (개방)
+const BLUR_MULT_MIN = 0.25;  // F16  (조임)
 
 /* ─── AF 히스테리시스 임계값 ──────────────────── */
 const AF_ENTER = 0.7;
@@ -34,7 +33,7 @@ const FOCUS_RAW_MAX = 1000;
 const S = {
   focusValue:      8.5,
   apertureIdx:     0,
-  afActive:        { bg: false, mid: false, fg: false },
+  afActive:        { bg: false, fg: false },
   prevApertureIdx: -1,
   focusRafId:      null,
 };
@@ -46,15 +45,13 @@ const S = {
 const D = {};
 
 function initDOM() {
-  D.lBg  = document.getElementById('layer-bg');
-  D.lMid = document.getElementById('layer-mid');
-  D.lFg  = document.getElementById('layer-fg');
+  D.lBg = document.getElementById('layer-bg');
+  D.lFg = document.getElementById('layer-fg');
 
   D.bokeh = document.querySelectorAll('.bokeh');
 
-  D.afBg  = document.getElementById('af-bg');
-  D.afMid = document.getElementById('af-mid');
-  D.afFg  = document.getElementById('af-fg');
+  D.afBg = document.getElementById('af-bg');
+  D.afFg = document.getElementById('af-fg');
 
   D.hudApt    = document.getElementById('hud-aperture');
   D.hudDist   = document.getElementById('hud-distance');
@@ -64,7 +61,6 @@ function initDOM() {
   D.dofRange  = document.getElementById('dof-range');
   D.dofMarker = document.getElementById('dof-focus-marker');
   D.dofFgDot  = document.getElementById('dof-fg-dot');
-  D.dofMidDot = document.getElementById('dof-mid-dot');
   D.dofBgDot  = document.getElementById('dof-bg-dot');
 
   D.sliderFocus    = document.getElementById('slider-focus');
@@ -94,6 +90,7 @@ function focusValueToRaw(val) {
   return Math.round((val / 10) * FOCUS_RAW_MAX);
 }
 
+// 내부값(0~10) → 거리 문자열 (비선형 매핑)
 function valueToDistance(val) {
   if (val >= 9.5) return '∞';
   if (val >= 8.0) return Math.round(lerp(5, 30, (val - 8) / 1.5)) + 'm';
@@ -104,15 +101,18 @@ function valueToDistance(val) {
   return '0.3m';
 }
 
+// 조리개 인덱스 → blur multiplier
 function aptToMult(idx) {
   const t = idx / (APERTURE_COUNT - 1);
   return lerp(BLUR_MULT_MAX, BLUR_MULT_MIN, t);
 }
 
+// blur 계산
 function computeBlur(fv, ai, dist) {
   return Math.abs(fv - dist) * aptToMult(ai) * BLUR_SCALE;
 }
 
+// blur → CSS filter 문자열
 function blurFilter(px) {
   const b   = Math.max(0, px);
   const sat = Math.max(0.4, 1 - b * 0.03);
@@ -120,18 +120,20 @@ function blurFilter(px) {
   return `blur(${b.toFixed(2)}px) saturate(${sat.toFixed(2)}) brightness(${bri.toFixed(2)})`;
 }
 
-function aptToDofWidth(idx) {
-  return lerp(0.04, 0.58, idx / (APERTURE_COUNT - 1));
+// blur 수식 역산: "blur < AF_EXIT 이 되는 focusDist 허용 반경"
+// |focusValue - dist| × aptToMult × BLUR_SCALE < AF_EXIT
+// → 허용 반경 = AF_EXIT / (aptToMult × BLUR_SCALE)
+// → 바 위의 반폭(0~1) = 허용 반경 / 10
+function dofHalfWidth(ai) {
+  return AF_EXIT / (aptToMult(ai) * BLUR_SCALE * 10);
 }
 
 function updateFocusTrackPct(raw) {
-  const pct = (raw / FOCUS_RAW_MAX * 100).toFixed(1) + '%';
-  D.sliderFocus.style.setProperty('--pct', pct);
+  D.sliderFocus.style.setProperty('--pct', (raw / FOCUS_RAW_MAX * 100).toFixed(1) + '%');
 }
 
 function updateApertureTrackPct(idx) {
-  const pct = (idx / (APERTURE_COUNT - 1) * 100).toFixed(1) + '%';
-  D.sliderAperture.style.setProperty('--pct', pct);
+  D.sliderAperture.style.setProperty('--pct', (idx / (APERTURE_COUNT - 1) * 100).toFixed(1) + '%');
 }
 
 
@@ -146,7 +148,7 @@ function setupSliderEvents() {
       cancelAnimationFrame(S.focusRafId);
       S.focusRafId = null;
     }
-    const raw = parseInt(D.sliderFocus.value, 10);
+    const raw    = parseInt(D.sliderFocus.value, 10);
     S.focusValue = rawToFocusValue(raw);
     updateFocusTrackPct(raw);
     haptic([5]);
@@ -167,7 +169,7 @@ function setupSliderEvents() {
 
 
 /* ═══════════════════════════════════════════════
-   AF 포인트 탭 → 자동 초점 이동 (easeOut 애니메이션)
+   AF 포인트 탭 → 자동 초점 이동
 ═══════════════════════════════════════════════ */
 
 function autoFocus(layerKey) {
@@ -185,13 +187,12 @@ function autoFocus(layerKey) {
   function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
   function step(now) {
-    const t       = clamp((now - startTime) / DURATION, 0, 1);
-    S.focusValue  = lerp(startVal, targetVal, easeOut(t));
+    const t      = clamp((now - startTime) / DURATION, 0, 1);
+    S.focusValue = lerp(startVal, targetVal, easeOut(t));
 
     const raw = focusValueToRaw(S.focusValue);
     D.sliderFocus.value = raw;
     updateFocusTrackPct(raw);
-
     render();
 
     if (t < 1) {
@@ -208,9 +209,8 @@ function autoFocus(layerKey) {
 
 function setupAFEvents() {
   [
-    [D.afBg,  'bg'],
-    [D.afMid, 'mid'],
-    [D.afFg,  'fg'],
+    [D.afBg, 'bg'],
+    [D.afFg, 'fg'],
   ].forEach(([el, key]) => {
     el.addEventListener('click', () => autoFocus(key));
     el.addEventListener('touchstart', e => {
@@ -239,19 +239,15 @@ function render() {
   const ai = S.apertureIdx;
 
   // 1. 레이어별 blur
-  const blurs = {
-    bg:  computeBlur(fv, ai, LAYERS.bg.focusDist),
-    mid: computeBlur(fv, ai, LAYERS.mid.focusDist),
-    fg:  computeBlur(fv, ai, LAYERS.fg.focusDist),
-  };
+  const blurBg = computeBlur(fv, ai, LAYERS.bg.focusDist);
+  const blurFg = computeBlur(fv, ai, LAYERS.fg.focusDist);
 
-  D.lBg.style.filter  = blurFilter(blurs.bg);
-  D.lMid.style.filter = blurFilter(blurs.mid);
-  D.lFg.style.filter  = blurFilter(blurs.fg);
+  D.lBg.style.filter = blurFilter(blurBg);
+  D.lFg.style.filter = blurFilter(blurFg);
 
-  // 2. 보케 빛망울
+  // 2. 보케 빛망울 — 배경 blur + 조리개 개방도에 비례
   const apertureOpenness = 1 - ai / (APERTURE_COUNT - 1);
-  const bokehStr = (blurs.bg / 20) * apertureOpenness;
+  const bokehStr = (blurBg / 20) * apertureOpenness;
   D.bokeh.forEach(circle => {
     const baseR  = parseFloat(circle.getAttribute('data-base-r')) || 6;
     const newR   = baseR + bokehStr * 22;
@@ -261,14 +257,13 @@ function render() {
   });
 
   // 3. AF 포인트
-  checkAF(D.afBg,  'bg',  blurs.bg);
-  checkAF(D.afMid, 'mid', blurs.mid);
-  checkAF(D.afFg,  'fg',  blurs.fg);
+  checkAF(D.afBg, 'bg', blurBg);
+  checkAF(D.afFg, 'fg', blurFg);
 
   // 4. AF 상태 텍스트 (하단 HUD)
   const locked    = Object.values(S.afActive).some(Boolean);
   const lockedKey = Object.entries(S.afActive).find(([, v]) => v)?.[0];
-  const nameMap   = { bg: '배경', mid: '중경', fg: '전경' };
+  const nameMap   = { bg: '배경', fg: '전경' };
 
   D.hudAfText.textContent = locked
     ? `${nameMap[lockedKey]} 초점 맞음`
@@ -290,7 +285,7 @@ function render() {
   });
 
   // 7. DOF 인디케이터
-  updateDOF(fv, ai, blurs);
+  updateDOF(fv, ai);
 }
 
 
@@ -317,19 +312,24 @@ function checkAF(el, key, blurPx) {
 
 /* ─── DOF 인디케이터 ────────────────────────── */
 
-function updateDOF(fv, ai, blurs) {
+function updateDOF(fv, ai) {
+  // 포커스 마커 위치 (focusDist/10 기준과 동일한 스케일)
   const markerPos = fv / 10;
   D.dofMarker.style.left = (markerPos * 100).toFixed(1) + '%';
 
-  const rw    = aptToDofWidth(ai);
-  const rLeft = clamp(markerPos - rw / 2, 0, 1);
-  const rW    = clamp(markerPos + rw / 2, 0, 1) - rLeft;
+  // 선명 구간 블록 — blur 수식으로부터 역산한 반폭
+  const hw    = dofHalfWidth(ai);
+  const rLeft = clamp(markerPos - hw, 0, 1);
+  const rRight = clamp(markerPos + hw, 0, 1);
+  const rW    = rRight - rLeft;
   D.dofRange.style.left  = (rLeft * 100).toFixed(1) + '%';
   D.dofRange.style.width = (rW    * 100).toFixed(1) + '%';
 
-  [[D.dofFgDot, 'fg'], [D.dofMidDot, 'mid'], [D.dofBgDot, 'bg']].forEach(([el, k]) => {
-    el.classList.toggle('in-range', blurs[k] < AF_EXIT);
-  });
+  // 피사체 점 강조 — 범위 블록 안에 들어오는지로 판단 (blur 기준과 완전히 일치)
+  const fgPos = LAYERS.fg.focusDist / 10;
+  const bgPos = LAYERS.bg.focusDist / 10;
+  D.dofFgDot.classList.toggle('in-range', fgPos >= rLeft && fgPos <= rRight);
+  D.dofBgDot.classList.toggle('in-range', bgPos >= rLeft && bgPos <= rRight);
 }
 
 
@@ -355,6 +355,11 @@ function init() {
   setupSliderEvents();
   setupAFEvents();
 
+  // DOF 피사체 점 위치 — focusDist/10 으로 통일 (HTML 하드코딩 없음)
+  D.dofFgDot.style.left = (LAYERS.fg.focusDist / 10 * 100).toFixed(1) + '%';
+  D.dofBgDot.style.left = (LAYERS.bg.focusDist / 10 * 100).toFixed(1) + '%';
+
+  // 슬라이더 초기값 — JS 상태에서 단방향으로 설정
   D.sliderFocus.value    = focusValueToRaw(S.focusValue);
   D.sliderAperture.value = S.apertureIdx;
 

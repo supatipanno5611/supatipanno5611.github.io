@@ -61,31 +61,6 @@
           <circle class="bokeh" cx="270" cy="130" r="10" fill="url(#bokehGrad)" data-base-r="10"/>
         </svg>
 
-        <!-- 중경 레이어 (인물 실루엣) -->
-        <svg class="layer layer--mid" id="layer-mid"
-             viewBox="0 0 390 500" preserveAspectRatio="xMidYMid slice"
-             xmlns="http://www.w3.org/2000/svg">
-
-          <!-- 인물 실루엣 -->
-          <g class="figure" transform="translate(155, 140)">
-            <!-- 머리 -->
-            <circle cx="40" cy="30" r="22" fill="#1a1a2e"/>
-            <!-- 몸통 -->
-            <path d="M18,52 Q10,90 8,140 L72,140 Q70,90 62,52 Z" fill="#1a1a2e"/>
-            <!-- 팔 왼쪽 -->
-            <path d="M18,65 Q0,90 5,120 L15,118 Q12,92 24,70 Z" fill="#1a1a2e"/>
-            <!-- 팔 오른쪽 -->
-            <path d="M62,65 Q80,90 75,120 L65,118 Q68,92 56,70 Z" fill="#1a1a2e"/>
-            <!-- 다리 왼쪽 -->
-            <path d="M20,138 Q16,190 18,230 L36,230 Q36,190 32,138 Z" fill="#1a1a2e"/>
-            <!-- 다리 오른쪽 -->
-            <path d="M60,138 Q64,190 62,230 L44,230 Q44,190 48,138 Z" fill="#1a1a2e"/>
-          </g>
-
-          <!-- 바닥 잔디 실루엣 -->
-          <ellipse cx="195" cy="420" rx="180" ry="30" fill="#0d2010" opacity="0.7"/>
-        </svg>
-
         <!-- 전경 레이어 (꽃과 풀잎) -->
         <svg class="layer layer--fg" id="layer-fg"
              viewBox="0 0 390 500" preserveAspectRatio="xMidYMid slice"
@@ -179,14 +154,6 @@
           <span class="af-point__label">배경</span>
         </div>
 
-        <!-- 중경 AF 포인트 -->
-        <div class="af-point" id="af-mid"
-             data-layer="mid"
-             style="top: 48%; left: 50%;">
-          <div class="af-point__box"></div>
-          <span class="af-point__label">중경</span>
-        </div>
-
         <!-- 전경 AF 포인트 -->
         <div class="af-point" id="af-fg"
              data-layer="fg"
@@ -223,9 +190,8 @@
   <section class="dof-indicator" id="dof-indicator" aria-label="피사계심도 범위">
     <div class="dof-bar-wrap">
       <!-- 피사체 위치 마커들 -->
-      <div class="dof-subject" id="dof-fg-dot"  data-label="전경" style="left: 10%"></div>
-      <div class="dof-subject" id="dof-mid-dot" data-label="중경" style="left: 46%"></div>
-      <div class="dof-subject" id="dof-bg-dot"  data-label="배경" style="left: 87%"></div>
+      <div class="dof-subject" id="dof-fg-dot"  data-label="전경"></div>
+      <div class="dof-subject" id="dof-bg-dot"  data-label="배경"></div>
 
       <!-- 선명 구간 블록 -->
       <div class="dof-range" id="dof-range"></div>
@@ -256,7 +222,7 @@
           type="range"
           id="slider-focus"
           class="slider slider--focus"
-          min="0" max="1000" step="1" value="850"
+          min="0" max="1000" step="1"
           aria-label="초점 거리 슬라이더"
         />
       </div>
