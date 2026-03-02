@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>초점과 왜곡</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <canvas id="disk"></canvas>
+
+  <div id="hint" class="hint">
+    <p class="hint-main">드래그하여 초점을 움직여보세요</p>
+    <p class="hint-sub">Focus · Distortion · Hyperbolic Lens</p>
+  </div>
+
+  <div class="btn-group">
+    <button id="btn-reset" class="btn-circle" aria-label="초점 리셋">
+	  <svg viewBox="0 0 24 24" fill="none">
+	    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+	    <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+	    <line x1="12" y1="3"  x2="12" y2="7"  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+	    <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+	    <line x1="3"  y1="12" x2="7"  y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+	    <line x1="17" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+	  </svg>
+	</button>
+
+    <button id="btn-mode" class="btn-circle btn-primary" aria-label="모드 전환">
+      <svg id="icon-mode-1" class="mode-icon active" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+        <line x1="12" y1="3"  x2="12" y2="8"  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="12" y1="16" x2="12" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="3"  y1="12" x2="8"  y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="16" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <svg id="icon-mode-2" class="mode-icon" viewBox="0 0 24 24" fill="none">
+        <path d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M20 12a8 8 0 0 1-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <polyline points="12,4 9,1 6,4"      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <polyline points="12,20 15,23 18,20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

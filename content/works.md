@@ -8,5 +8,5 @@ title: 인터렉션 작업물
 <ul>
   <li><a href="/works/infiniteline.html" target="_blank">무한 선분</a></li>
   <li><a href="/works/camerafocus.html" target="_blank">카메라 초점</a></li>
-  <li><a href="/works/hyperbolic.html" target="_blank">쌍곡선 기하학</a></li>
+  <li><a href="/works/focusdistortion.html" target="_blank">초점과 왜곡</a></li>
 </ul>
