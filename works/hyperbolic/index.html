@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>쌍곡 공간</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 메인 캔버스: Poincaré Disk 렌더링 -->
+  <canvas id="disk"></canvas>
+
+  <!-- 온보딩 안내 오버레이 -->
+  <div id="hint" class="hint">
+    <p class="hint-main">드래그하여 쌍곡 공간을 탐험하세요</p>
+    <p class="hint-sub">Hyperbolic Geometry · Poincaré Disk Model</p>
+  </div>
+
+  <!-- 그리드 토글 버튼 (오른쪽 하단) -->
+  <button id="grid-toggle" class="grid-toggle" aria-label="격자 전환">
+    <!-- 아이콘은 JS에서 상태에 따라 교체 -->
+    <svg id="icon-none" class="toggle-icon active" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="4" y1="20" x2="20" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <svg id="icon-sphere" class="toggle-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+      <ellipse cx="12" cy="12" rx="9" ry="4" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <svg id="icon-hyperbolic" class="toggle-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M 3 12 Q 7 7 12 12 Q 17 17 21 12" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      <path d="M 3 12 Q 7 17 12 12 Q 17 7 21 12" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      <path d="M 12 3 Q 7 7 12 12 Q 17 17 12 21" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      <path d="M 12 3 Q 17 7 12 12 Q 7 17 12 21" stroke="currentColor" stroke-width="1.2" fill="none"/>
+    </svg>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>
