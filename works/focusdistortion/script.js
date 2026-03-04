@@ -23,7 +23,7 @@ function mobiusInv(z, p) {
 // ═══════════════════════════════════════════
 // 상수
 // ═══════════════════════════════════════════
-const MAX_P        = 0.88;
+const MAX_P        = 0.90;
 const RENDER_SCALE = 0.5;
 const HYPER_DISTS  = [0.5, 1.0, 1.5, 2.2, 3.0]; // 쌍곡 등거리 (tanh(d/2))
 const RADIAL_N     = 10;
