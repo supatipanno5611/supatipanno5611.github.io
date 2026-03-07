@@ -148,3 +148,347 @@
     display: block;
   }
 }
+// ─── mermaid css ───
+/* ─────────────────────────────────────────────────────────────────────────────
+   mermaid-obsidian-theme.css  ·  Blueprint Edition
+   Technical schematic aesthetic — grid paper, tight tonal blue layers,
+   properly sized nodes, centered labels.
+   Paste into: .obsidian/snippets/mermaid-obsidian-theme.css
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   PALETTE
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Light mode: printed blueprint on pale drafting paper ─────────────────── */
+:root[saved-theme="light"] {
+  --mg-canvas:        #daeaf8;   /* paper                                      */
+  --mg-grid-major:    #b8d4ec;   /* major grid lines                           */
+  --mg-grid-minor:    #cfe0f2;   /* minor grid lines                           */
+  --mg-subgraph-bg:   #c8dcf0;   /* zone fill                                  */
+  --mg-node-bg:       #b0cce4;   /* node fill                                  */
+  --mg-stroke:        #7aaac8;   /* node border                                */
+  --mg-edge:          #5a8fb0;   /* connector lines                            */
+  --mg-edge-bright:   #3d78a0;   /* arrowheads                                 */
+  --mg-text:          #0e2d48;   /* primary label                              */
+  --mg-text-muted:    #3d6e90;   /* secondary / subgraph title                 */
+  --mg-label-bg:      #c4d9ee;   /* edge label pill                            */
+  --mg-grid:          #b8d4ec;
+}
+
+/* ── Dark mode: classic deep-navy blueprint ───────────────────────────────── */
+:root[saved-theme="dark"] {
+  --mg-canvas:        #0c1a2e;   /* deep naval paper                           */
+  --mg-grid-major:    #162540;   /* major grid lines                           */
+  --mg-grid-minor:    #111e35;   /* minor grid lines                           */
+  --mg-subgraph-bg:   #102032;   /* zone fill                                  */
+  --mg-node-bg:       #162c44;   /* node fill                                  */
+  --mg-stroke:        #2b4e6e;   /* node border                                */
+  --mg-edge:          #3a6890;   /* connector lines                            */
+  --mg-edge-bright:   #558cb4;   /* arrowheads                                 */
+  --mg-text:          #c4dcf0;   /* primary label                              */
+  --mg-text-muted:    #6090b4;   /* secondary / subgraph title                 */
+  --mg-label-bg:      #102032;   /* edge label pill                            */
+  --mg-grid:          #162540;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   CONTAINER  —  blueprint grid paper background via SVG data URI
+   Grid is two-level: minor (small) + major (larger) lines, like graph paper.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+:root[saved-theme="dark"] .mermaid,
+:root[saved-theme="dark"] pre.mermaid {
+  background-color: var(--mg-canvas) !important;
+  /* Two-layer grid: minor 20px, major 100px — kept very close to canvas */
+  background-image:
+    /* major horizontal */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 99px,
+      #142034 99px,
+      #142034 100px
+    ),
+    /* major vertical */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 99px,
+      #142034 99px,
+      #142034 100px
+    ),
+    /* minor horizontal */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 19px,
+      #0f1c30 19px,
+      #0f1c30 20px
+    ),
+    /* minor vertical */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 19px,
+      #0f1c30 19px,
+      #0f1c30 20px
+    ) !important;
+  border-radius: 6px     !important;
+  padding:       20px    !important;
+  font-family:   inherit !important;
+}
+
+:root[saved-theme="light"] .mermaid,
+:root[saved-theme="light"] pre.mermaid {
+  background-color: var(--mg-canvas) !important;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 99px,
+      #c8daea 99px,
+      #c8daea 100px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 99px,
+      #c8daea 99px,
+      #c8daea 100px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 19px,
+      #d6e5f2 19px,
+      #d6e5f2 20px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 19px,
+      #d6e5f2 19px,
+      #d6e5f2 20px
+    ) !important;
+  border-radius: 6px     !important;
+  padding:       20px    !important;
+  font-family:   inherit !important;
+}
+
+.mermaid svg {
+  background: transparent !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   NODES
+   IMPORTANT: Do not override padding, line-height, font-size, display, or any
+   box-model property on label divs. Mermaid measures the DOM to compute node
+   rect dimensions before paint — any CSS that shifts those values post-measure
+   causes the rect and label to disagree, producing stretched / oversized nodes.
+   Safe overrides: fill/stroke on shapes, color/font-weight on text only.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Shape fills and strokes */
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon,
+.mermaid .node path,
+.mermaid g.node rect,
+.mermaid g.node circle,
+.mermaid g.node ellipse,
+.mermaid g.node polygon {
+  fill:         var(--mg-node-bg) !important;
+  stroke:       var(--mg-stroke)  !important;
+  stroke-width: 1px               !important;
+  rx:           5px               !important;
+  ry:           5px               !important;
+  filter:       none              !important;
+}
+
+/* Label: color only — no box-model changes */
+.mermaid .node foreignObject div,
+.mermaid .node foreignObject div.nodeLabel,
+.mermaid .nodeLabel {
+  color:      var(--mg-text) !important;
+  background: transparent    !important;
+}
+
+/* SVG text fallback (older Mermaid builds) */
+.mermaid .node .label,
+.mermaid .node text,
+.mermaid g.node text {
+  fill:        var(--mg-text) !important;
+  text-anchor: middle         !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   EDGES
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.mermaid .edgePath path,
+.mermaid .edge path,
+.mermaid .flowchart-link {
+  stroke:       var(--mg-edge) !important;
+  stroke-width: 1px            !important;
+  fill:         none           !important;
+  filter:       none           !important;
+}
+
+.mermaid marker path,
+.mermaid defs marker path {
+  fill:   var(--mg-edge-bright) !important;
+  stroke: var(--mg-edge-bright) !important;
+}
+
+/* ── Edge labels — blueprint annotation style ─────────────────────────────── */
+
+/* The rect behind the label: same color as canvas = punches out the edge line */
+.mermaid .edgeLabel rect,
+.mermaid .edgeLabel .label rect {
+  fill:    var(--mg-canvas) !important;
+  stroke:  none             !important;
+  opacity: 1                !important;
+}
+
+/* The foreignObject container */
+.mermaid .edgeLabel,
+.mermaid .edgeLabel foreignObject {
+  background: transparent !important;
+  overflow:   visible     !important;
+}
+
+/* The actual text — styled like a schematic annotation */
+.mermaid .edgeLabel span,
+.mermaid .edgeLabel foreignObject div,
+.mermaid .edgeLabel foreignObject p {
+  background:       var(--mg-canvas)     !important;
+  background-color: var(--mg-canvas)     !important;
+  color:            var(--mg-text-muted) !important;
+  font-size:        10.5px               !important;
+  font-style:       italic               !important;
+  letter-spacing:   0.05em               !important;
+  border:           none                 !important;
+  box-shadow:       none                 !important;
+  padding:          0 3px                !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SUBGRAPHS  —  dashed border zones like blueprint section callouts
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.mermaid .cluster rect,
+.mermaid g.cluster rect {
+  fill:             var(--mg-subgraph-bg) !important;
+  stroke:           var(--mg-stroke)      !important;
+  stroke-width:     1px                   !important;
+  stroke-dasharray: 5 3                   !important;
+  rx:               6px                   !important;
+  ry:               6px                   !important;
+  filter:           none                  !important;
+}
+
+.mermaid .cluster span,
+.mermaid .cluster text,
+.mermaid g.cluster text,
+.mermaid .cluster-label text,
+.mermaid .cluster-label span {
+  fill:           var(--mg-text-muted) !important;
+  color:          var(--mg-text-muted) !important;
+  font-size:      10px                 !important;
+  font-weight:    600                  !important;
+  letter-spacing: 0.1em               !important;
+  text-transform: uppercase            !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   WIPE MERMAID INJECTED CLASS-BASED COLORS  (c0–c9, default, etc.)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.mermaid .node.default > rect,
+.mermaid .node.default > circle,
+.mermaid .node.default > ellipse,
+.mermaid .node.default > polygon,
+.mermaid g[class*="node-"] rect,
+.mermaid [class^="node"] rect,
+.mermaid [class*=" node"] rect {
+  fill:   var(--mg-node-bg) !important;
+  stroke: var(--mg-stroke)  !important;
+}
+
+/* ── Label-container rect (some Mermaid builds use this wrapper) ──────────── */
+.mermaid .label-container,
+.mermaid .label foreignObject {
+  overflow: visible !important;
+}
+
+.mermaid .node .label-container rect {
+  fill:         var(--mg-node-bg) !important;
+  stroke:       var(--mg-stroke)  !important;
+  stroke-width: 1px               !important;
+  rx:           5px               !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SEQUENCE DIAGRAMS
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.mermaid .actor,
+.mermaid .actor-line,
+.mermaid .messageLine0,
+.mermaid .messageLine1 {
+  stroke:       var(--mg-edge)    !important;
+  stroke-width: 1px               !important;
+  fill:         var(--mg-node-bg) !important;
+}
+
+.mermaid text.actor {
+  fill:      var(--mg-text) !important;
+  font-size: 13px           !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   GANTT  /  GRID AXES
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.mermaid .grid .tick line,
+.mermaid .grid path {
+  stroke:       var(--mg-grid) !important;
+  stroke-width: 0.5px          !important;
+  opacity:      0.5            !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   DIAGRAM TITLE  —  blueprint title block style
+   Mermaid renders the diagram title as .mermaidTooltip or as a <text> with
+   class .titleText / #chart-title inside the SVG, depending on version.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* SVG title text (most common in Obsidian's bundled Mermaid) */
+.mermaid svg text.title,
+.mermaid svg .titleText,
+.mermaid svg #chart-title,
+.mermaid svg text[class*="title"] {
+  fill:           var(--mg-text)  !important;
+  font-size:      13px            !important;
+  font-weight:    700             !important;
+  letter-spacing: 0.18em          !important;
+  text-transform: uppercase       !important;
+  text-anchor:    middle          !important;
+}
+
+/* Underline rule beneath the title — drawn as a rect in some builds.
+   Make it use the stroke color so it looks like a title-block rule. */
+.mermaid svg .title-border,
+.mermaid svg line.title-border {
+  stroke:       var(--mg-stroke) !important;
+  stroke-width: 1px              !important;
+}
+
+
+
+.mermaid * {
+  filter:     none !important;
+  box-shadow: none !important;
+}
