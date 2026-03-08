@@ -3,11 +3,17 @@ import footerStyle from "./styles/footer.scss"
 
 // 제외할 경로 prefix 목록 — 추가할 경로가 생기면 여기에만 추가하면 됩니다
 const EXCLUDED_PREFIXES = ["tags/", "works/"]
+// 제외할 정확한 slug 목록
+const EXCLUDED_SLUGS = ["index"]
 
 const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
   const pages = allFiles
     .map((f) => f.slug!)
-    .filter((slug) => !EXCLUDED_PREFIXES.some((prefix) => slug.startsWith(prefix)))
+    .filter(
+      (slug) =>
+        !EXCLUDED_SLUGS.includes(slug) &&
+        !EXCLUDED_PREFIXES.some((prefix) => slug.startsWith(prefix)),
+    )
 
   return (
     <footer>
