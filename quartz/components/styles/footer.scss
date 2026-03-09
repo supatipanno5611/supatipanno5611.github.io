@@ -1,22 +1,67 @@
 footer {
   margin-bottom: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 
-  & .random-page-btn {
+  & .footer-row {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  // 검색/그래프 버튼 줄: 모바일에서만 표시
+  & .footer-row-mobile {
+    display: none;
+
+    @media all and (max-width: 800px) {
+      display: flex;
+    }
+  }
+
+  & .footer-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.4rem;
     padding: 0.4rem 0.9rem;
-    border: 1px solid var(--secondary);
+    border: 1px solid var(--dark);
     border-radius: 6px;
     background: transparent;
-    color: var(--secondary);
+    color: var(--darkgray);
     font-size: 0.9rem;
     cursor: pointer;
     transition: color 0.2s ease, border-color 0.2s ease;
 
-    & .random-page-icon {
+    &:hover {
+      color: var(--secondary);
+      border-color: var(--secondary);
+    }
+
+    & svg {
       width: 1em;
       height: 1em;
+      flex-shrink: 0;
+    }
+  }
+
+  // 공유 버튼: 복사 전후 아이콘 전환
+  & .share-btn {
+    & .icon-copied {
+      display: none;
+    }
+
+    &.copied {
+      color: var(--secondary);
+      border-color: var(--secondary);
+
+      & .icon-share {
+        display: none;
+      }
+
+      & .icon-copied {
+        display: block;
+      }
     }
   }
 }
