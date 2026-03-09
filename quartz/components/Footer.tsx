@@ -6,6 +6,17 @@ const EXCLUDED_PREFIXES = ["tags/", "works/"]
 // 제외할 정확한 slug 목록
 const EXCLUDED_SLUGS = ["index"]
 
+// ── 버튼 텍스트 — 여기서만 수정하세요 ──────────────────
+const LABELS = {
+  share: "링크 복사",
+  shareCopied: "복사됨",
+  question: "질문하기",
+  search: "검색",
+  graph: "그래프",
+  random: "인연 따라 읽기",
+}
+// ────────────────────────────────────────────────────────
+
 const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
   const pages = allFiles
     .map((f) => f.slug!)
@@ -19,7 +30,7 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
     <footer>
       {/* 줄 1: 공유, 질문 */}
       <div class="footer-row">
-        <button class="footer-btn share-btn" aria-label="링크 복사">
+        <button class="footer-btn share-btn" aria-label={LABELS.share} data-label={LABELS.share} data-label-copied={LABELS.shareCopied}>
           <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
             <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
@@ -29,11 +40,12 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
             <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
             <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
           </svg>
+          <span class="btn-label">{LABELS.share}</span>
         </button>
 
         <button
           class="footer-btn tally-btn"
-          aria-label="질문하기"
+          aria-label={LABELS.question}
           data-tally-open="rjKA72"
           data-tally-layout="modal"
           data-tally-hide-title="1"
@@ -44,6 +56,7 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
             <path d="M12 17h.01"/>
           </svg>
+          <span class="btn-label">{LABELS.question}</span>
         </button>
       </div>
 
