@@ -4,7 +4,7 @@ import footerStyle from "./styles/footer.scss"
 // 제외할 경로 prefix 목록 — 추가할 경로가 생기면 여기에만 추가하면 됩니다
 const EXCLUDED_PREFIXES = ["tags/", "works/"]
 // 제외할 정확한 slug 목록
-const EXCLUDED_SLUGS = ["index"]
+const EXCLUDED_SLUGS = ["index", "tags-overview"]
 
 // ── 버튼 텍스트 — 여기서만 수정하세요 ──────────────────
 const LABELS = {
@@ -14,6 +14,7 @@ const LABELS = {
   search: "검색",
   graph: "그래프",
   random: "인연 따라 읽기",
+  tags: "전체 게시글 목록 보기",
 }
 // ────────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
         </button>
       </div>
 
-      {/* 줄 3: 인연 따라 읽기 */}
+      {/* 줄 3: 인연 따라 읽기, 태그 목록 */}
       <div class="footer-row">
         <button
           class="footer-btn random-page-btn"
@@ -93,6 +94,14 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
             <path fill="currentColor" d="M0.84 12.48h2.080c0.6 0 1.080 0.28 1.56 0.92 0.16 0.2 0.4 0.32 0.68 0.32 0.2 0 0.36-0.040 0.52-0.16 0.36-0.28 0.44-0.8 0.16-1.2-0.84-1.040-1.8-1.6-2.92-1.6h-2.080c-0.48 0.040-0.84 0.4-0.84 0.88s0.36 0.84 0.84 0.84z"/>
           </svg>
           인연 따라 읽기
+        </button>
+
+        <button class="footer-btn tags-overview-btn" aria-label={LABELS.tags}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/>
+            <path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/>
+          </svg>
+          <span class="btn-label">{LABELS.tags}</span>
         </button>
       </div>
     </footer>
@@ -140,6 +149,14 @@ Footer.afterDOMLoaded = `
         const right = document.querySelector(".sidebar.right")
         left?.classList.remove("open")
         right?.classList.add("open")
+      })
+    }
+
+    // ── 전체 게시글 목록 보기 버튼 ──
+    const tagsBtn = document.querySelector(".tags-overview-btn")
+    if (tagsBtn) {
+      tagsBtn.addEventListener("click", () => {
+        window.location.href = "/tags-overview"
       })
     }
 
