@@ -119,6 +119,11 @@
   }
 }
 
+// ─── 사이드바 닫힘 직후 버튼 일시 잠금 ───
+.footer-btn.sidebar-btn-locked {
+  pointer-events: none;
+}
+
 // ─── 선택된 텍스트 색상 ───
 ::selection {
   background: color-mix(in srgb, var(--tertiary) 15%, rgba(255, 255, 255, 0));
