@@ -22,7 +22,7 @@ document.addEventListener("nav", () => {
   function closeAll() {
     leftSidebar?.classList.remove("open")
     rightSidebar?.classList.remove("open")
-    const sidebarBtns = document.querySelectorAll(".sidebar-search-btn, .sidebar-graph-btn")
+    const sidebarBtns = document.querySelectorAll(".footer-btn")
     sidebarBtns.forEach(btn => btn.classList.add("sidebar-btn-locked"))
     setTimeout(() => {
       sidebarBtns.forEach(btn => btn.classList.remove("sidebar-btn-locked"))
