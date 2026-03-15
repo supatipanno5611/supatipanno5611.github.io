@@ -14,6 +14,7 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
   if (fileData.slug !== "tags-overview") return null
 
   const groups = new Map<string, TagGroup>()
+  const untagged: QuartzPluginData[] = []
 
   for (const file of allFiles) {
     if (
@@ -22,6 +23,12 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
     ) continue
 
     const tags: string[] = file.frontmatter?.tags ?? []
+
+    if (tags.length === 0) {
+      untagged.push(file)
+      continue
+    }
+
     for (const tag of tags) {
       const slash = tag.indexOf("/")
       const parent = slash === -1 ? tag : tag.slice(0, slash)
@@ -93,6 +100,24 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
           </div>
         )
       })}
+
+      {untagged.length > 0 && (
+        <div class="tag-group">
+          <div class="tag-group-header">
+            <span class="tag-group-name">미분류</span>
+            <span class="tag-group-count">({untagged.length})</span>
+          </div>
+          <div class="tag-group-body">
+            <ul class="tag-file-list">
+              {[...untagged].sort(byTitle).map((file) => (
+                <li key={file.slug}>
+                  <a href={`/${file.slug}`}>{file.frontmatter?.title ?? file.slug}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
