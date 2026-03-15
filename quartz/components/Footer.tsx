@@ -11,10 +11,10 @@ const LABELS = {
   share: "링크 복사",
   shareCopied: "복사됨",
   question: "질문하기",
-  search: "검색",
-  graph: "그래프",
-  random: "인연 따라 읽기",
-  tags: "전체 게시글 목록 보기",
+  search: "검색하기",
+  graph: "그래프 보기",
+  random: "무작위 읽기",
+  tags: "전체 글 목록",
 }
 // ────────────────────────────────────────────────────────
 
@@ -63,14 +63,15 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
 
       {/* 줄 2: 검색, 그래프 (모바일 전용) */}
       <div class="footer-row footer-row-mobile">
-        <button class="footer-btn sidebar-search-btn" aria-label="검색">
+        <button class="footer-btn sidebar-search-btn" aria-label={LABELS.search}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="m21 21-4.34-4.34"/>
             <circle cx="11" cy="11" r="8"/>
           </svg>
+          <span class="btn-label">{LABELS.search}</span>
         </button>
 
-        <button class="footer-btn sidebar-graph-btn" aria-label="그래프 보기">
+        <button class="footer-btn sidebar-graph-btn" aria-label={LABELS.graph}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="18" r="3"/>
             <circle cx="6" cy="6" r="3"/>
@@ -78,6 +79,7 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
             <path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/>
             <path d="M12 12v3"/>
           </svg>
+          <span class="btn-label">{LABELS.graph}</span>
         </button>
       </div>
 
@@ -86,14 +88,15 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
         <button
           class="footer-btn random-page-btn"
           data-pages={JSON.stringify(pages)}
-          aria-label="인연 따라 읽기"
+          aria-label={LABELS.random}
         >
-          <svg class="random-page-icon" viewBox="-7.5 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path fill="currentColor" d="M14.92 17.56c-0.32-0.32-0.88-0.32-1.2 0s-0.32 0.88 0 1.2l0.76 0.76h-3.76c-0.6 0-1.080-0.32-1.6-0.96-0.28-0.36-0.8-0.44-1.2-0.16-0.36 0.28-0.44 0.8-0.16 1.2 0.84 1.12 1.8 1.64 2.92 1.64h3.76l-0.76 0.76c-0.32 0.32-0.32 0.88 0 1.2 0.16 0.16 0.4 0.24 0.6 0.24s0.44-0.080 0.6-0.24l2.2-2.2c0.32-0.32 0.32-0.88 0-1.2l-2.16-2.24z"/>
-            <path fill="currentColor" d="M10.72 12.48h3.76l-0.76 0.76c-0.32 0.32-0.32 0.88 0 1.2 0.16 0.16 0.4 0.24 0.6 0.24s0.44-0.080 0.6-0.24l2.2-2.2c0.32-0.32 0.32-0.88 0-1.2l-2.2-2.2c-0.32-0.32-0.88-0.32-1.2 0s-0.32 0.88 0 1.2l0.76 0.76h-3.76c-2.48 0-3.64 2.56-4.68 4.84-0.88 2-1.76 3.84-3.12 3.84h-2.080c-0.48 0-0.84 0.36-0.84 0.84s0.36 0.88 0.84 0.88h2.080c2.48 0 3.64-2.56 4.68-4.84 0.88-2 1.72-3.88 3.12-3.88z"/>
-            <path fill="currentColor" d="M0.84 12.48h2.080c0.6 0 1.080 0.28 1.56 0.92 0.16 0.2 0.4 0.32 0.68 0.32 0.2 0 0.36-0.040 0.52-0.16 0.36-0.28 0.44-0.8 0.16-1.2-0.84-1.040-1.8-1.6-2.92-1.6h-2.080c-0.48 0.040-0.84 0.4-0.84 0.88s0.36 0.84 0.84 0.84z"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/>
+            <path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/>
+            <path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/>
+            <path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/>
           </svg>
-          인연 따라 읽기
+          <span class="btn-label">{LABELS.random}</span>
         </button>
 
         <button class="footer-btn tags-overview-btn" aria-label={LABELS.tags}>
