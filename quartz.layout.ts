@@ -10,10 +10,10 @@ export const sharedPageComponents: SharedLayout = {
 
 export const defaultContentPageLayout: PageLayout = {
   beforeBody: [
-  	Component.AllTagsIndex(),
     Component.ArticleTitle(),
     Component.ContentMeta(),
     Component.TagList(),
+    Component.AllTagsIndex(),
   ],
   left: [
     Component.PageTitle(),
