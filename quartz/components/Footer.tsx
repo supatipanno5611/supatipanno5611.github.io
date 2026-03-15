@@ -122,6 +122,11 @@ Footer.beforeDOMLoaded = `
 
 Footer.afterDOMLoaded = `
   function setupFooter() {
+    // ── Tally 재스캔 (SPA 네비게이션 후 버튼 재등록) ──
+    if (window.Tally) {
+      window.Tally.loadEmbeds()
+    }
+
     // ── 공유 버튼 ──
     const shareBtn = document.querySelector(".share-btn")
     if (shareBtn) {
