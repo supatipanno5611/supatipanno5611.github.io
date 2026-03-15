@@ -1,18 +1,16 @@
 import { QuartzConfig } from "./quartz/cfg"
 import * as Plugin from "./quartz/plugins"
 
-/**
- * Quartz 4 Configuration
- *
- * See https://quartz.jzhao.xyz/configuration for more information.
- */
 const config: QuartzConfig = {
   configuration: {
     pageTitle: "viriya",
     pageTitleSuffix: " · buddhadhamma.kr",
     enableSPA: true,
     enablePopovers: false,
-    analytics: null,
+    analytics: {
+      provider: "google",
+      tagId: "G-CKKRM051XH",
+    },
     locale: "ko-KR",
     baseUrl: "buddhadhamma.kr",
     ignorePatterns: ["private", "templates", ".obsidian"],
@@ -80,7 +78,7 @@ const config: QuartzConfig = {
       Plugin.TagPage(),
       Plugin.ContentIndex({
         enableSiteMap: true,
-        enableRSS: false,
+        enableRSS: true,
       }),
       Plugin.Assets(),
       Plugin.Static(),
