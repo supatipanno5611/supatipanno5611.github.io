@@ -58,25 +58,10 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
 
         return (
           <div class="tag-group" key={parent}>
-            <button class="tag-group-header" aria-expanded="false">
+            <div class="tag-group-header">
               <span class="tag-group-name">{parent}</span>
               <span class="tag-group-count">({totalCount})</span>
-              <svg
-                class="tag-group-chevron"
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
+            </div>
 
             <div class="tag-group-body">
               {group.directFiles.length > 0 && (
@@ -113,20 +98,5 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
 }
 
 AllTagsIndex.css = allTagsIndexStyle
-
-AllTagsIndex.afterDOMLoaded = `
-  function setupAllTagsIndex() {
-    document.querySelectorAll(".tag-group-header").forEach((header) => {
-      header.addEventListener("click", () => {
-        const expanded = header.getAttribute("aria-expanded") === "true"
-        header.setAttribute("aria-expanded", String(!expanded))
-        header.closest(".tag-group")?.classList.toggle("open", !expanded)
-      })
-    })
-  }
-
-  document.addEventListener("nav", setupAllTagsIndex)
-  setupAllTagsIndex()
-`
 
 export default (() => AllTagsIndex) satisfies QuartzComponentConstructor

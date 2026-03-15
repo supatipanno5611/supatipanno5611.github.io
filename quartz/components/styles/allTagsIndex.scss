@@ -13,38 +13,12 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    width: 100%;
     padding: 0.75rem 0;
-    background: none;
-    border: none;
-    cursor: pointer;
     color: var(--dark);
     font-size: 1rem;
-    text-align: left;
-
-    &:hover {
-      color: var(--secondary);
-    }
-
-    .tag-group-chevron {
-      margin-left: auto;
-      flex-shrink: 0;
-      transition: transform 0.2s ease;
-    }
-  }
-
-  .tag-group.open {
-    .tag-group-header .tag-group-chevron {
-      transform: rotate(180deg);
-    }
-
-    .tag-group-body {
-      display: block;
-    }
   }
 
   .tag-group-body {
-    display: none;
     padding-bottom: 0.75rem;
   }
 
