@@ -1,6 +1,7 @@
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
 import { QuartzPluginData } from "../plugins/vfile"
 import allTagsIndexStyle from "./styles/allTagsIndex.scss"
+import { Date } from "./Date"
 
 type TagGroup = {
   directFiles: QuartzPluginData[]
@@ -10,7 +11,7 @@ type TagGroup = {
 const EXCLUDED_PREFIXES = ["tags/", "works/"]
 const EXCLUDED_SLUGS = ["index", "tags-overview"]
 
-const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentProps) => {
+const AllTagsIndex: QuartzComponent = ({ cfg, fileData, allFiles }: QuartzComponentProps) => {
   if (fileData.slug !== "tags-overview") return null
 
   const groups = new Map<string, TagGroup>()
@@ -76,6 +77,12 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
                   {[...group.directFiles].sort(byTitle).map((file) => (
                     <li key={file.slug}>
                       <a href={`/${file.slug}`}>{file.frontmatter?.title ?? file.slug}</a>
+                      {file.dates && (
+                        <span class="file-dates">
+                          <span>수정: <Date date={file.dates.modified} locale={cfg.locale} /></span>
+                          <span>작성: <Date date={file.dates.created} locale={cfg.locale} /></span>
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -91,6 +98,12 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
                     {[...files].sort(byTitle).map((file) => (
                       <li key={file.slug}>
                         <a href={`/${file.slug}`}>{file.frontmatter?.title ?? file.slug}</a>
+                        {file.dates && (
+                          <span class="file-dates">
+                            <span>수정: <Date date={file.dates.modified} locale={cfg.locale} /></span>
+                            <span>작성: <Date date={file.dates.created} locale={cfg.locale} /></span>
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -112,6 +125,12 @@ const AllTagsIndex: QuartzComponent = ({ fileData, allFiles }: QuartzComponentPr
               {[...untagged].sort(byTitle).map((file) => (
                 <li key={file.slug}>
                   <a href={`/${file.slug}`}>{file.frontmatter?.title ?? file.slug}</a>
+                  {file.dates && (
+                    <span class="file-dates">
+                      <span>수정: <Date date={file.dates.modified} locale={cfg.locale} /></span>
+                      <span>작성: <Date date={file.dates.created} locale={cfg.locale} /></span>
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

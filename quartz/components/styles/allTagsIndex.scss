@@ -68,3 +68,13 @@
     padding-left: 0.5rem;
   }
 }
+
+.file-dates {
+  font-size: 0.8em;
+  color: var(--gray);
+  margin-left: 0.5em;
+
+  span + span::before {
+    content: " · ";
+  }
+}
