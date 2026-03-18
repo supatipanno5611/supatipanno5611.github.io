@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Conditions</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Viewport: drop zone for buttons, expands with content -->
+  <div id="viewport">
+    <div id="viewport-grid"></div>
+  </div>
+
+  <!-- Scrollable area below viewport: infinite buttons spawn here -->
+  <div id="outside">
+    <div id="outside-buttons"></div>
+    <div id="scroll-sentinel"></div>
+  </div>
+
+  <!-- Floating controls -->
+  <div id="controls">
+    <button id="btn-all-on" type="button">ALL ON</button>
+    <button id="btn-random" type="button">RANDOM</button>
+  </div>
+
+  <!-- Drag ghost element -->
+  <div id="drag-ghost" hidden></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
