@@ -96,10 +96,7 @@
 
   // ── Tap / Long-press / Drag ──
   function bindBlock(el) {
-    el.addEventListener('touchstart', onPointerDown, { passive: false });
-    el.addEventListener('touchmove', onPointerMove, { passive: false });
-    el.addEventListener('touchend', onPointerUp);
-    el.addEventListener('touchcancel', onPointerUp);
+    el.addEventListener('touchstart', onPointerDown, { passive: true });
     el.addEventListener('mousedown', onPointerDown);
   }
 
@@ -131,7 +128,11 @@
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => startDrag(el, id, x, y), LONG_PRESS_MS);
 
-    if (e.type === 'mousedown') {
+    if (e.type === 'touchstart') {
+      document.addEventListener('touchmove', onPointerMove, { passive: false });
+      document.addEventListener('touchend', onPointerUp);
+      document.addEventListener('touchcancel', onPointerUp);
+    } else if (e.type === 'mousedown') {
       document.addEventListener('mousemove', onPointerMove);
       document.addEventListener('mouseup', onPointerUp);
     }
@@ -166,7 +167,11 @@
   function onPointerUp(e) {
     clearTimeout(pressTimer);
 
-    if (e.type === 'mouseup') {
+    if (e.type === 'touchend' || e.type === 'touchcancel') {
+      document.removeEventListener('touchmove', onPointerMove);
+      document.removeEventListener('touchend', onPointerUp);
+      document.removeEventListener('touchcancel', onPointerUp);
+    } else if (e.type === 'mouseup') {
       document.removeEventListener('mousemove', onPointerMove);
       document.removeEventListener('mouseup', onPointerUp);
     }
@@ -254,12 +259,13 @@
 
   // ── Bottom controls ──
   function doAllOn() {
-    buttons.forEach(b => {
-      if (b.location === 'scroll') {
-        b.isOn = true;
-        const el = getBlockEl(b.id);
-        if (el) syncBlockState(el, b);
-      }
+    const scrollBtns = buttons.filter(b => b.location === 'scroll');
+    const allOn = scrollBtns.every(b => b.isOn);
+    const target = !allOn;
+    scrollBtns.forEach(b => {
+      b.isOn = target;
+      const el = getBlockEl(b.id);
+      if (el) syncBlockState(el, b);
     });
     checkRealized();
   }

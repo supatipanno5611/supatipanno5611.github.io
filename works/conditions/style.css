@@ -29,7 +29,6 @@ html, body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  touch-action: none;
 }
 
 body.realized {
@@ -99,6 +98,7 @@ body.realized #viewport {
   border: 1px solid var(--surface-border);
   user-select: none;
   cursor: pointer;
+  touch-action: manipulation;
   transition: opacity 0.15s, transform 0.15s, border-color 0.2s;
 }
 
