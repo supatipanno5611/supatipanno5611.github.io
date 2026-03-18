@@ -1,249 +1,210 @@
-/* ========================================
-   CSS Variables
-   ======================================== */
-:root {
-  --bg: #0e0e10;
-  --bg-realized: #0a1a12;
-  --viewport-bg: #18181c;
-  --viewport-border: #2a2a30;
-  --viewport-border-dragover: #4a4a55;
-  --btn-off-bg: #28282e;
-  --btn-off-border: #3a3a42;
-  --btn-on-bg: #e8e8e0;
-  --btn-on-border: #d0d0c8;
-  --btn-text: #a0a098;
-  --btn-on-text: #18181c;
-  --controls-bg: rgba(20, 20, 24, 0.85);
-  --controls-border: #2a2a30;
-  --controls-btn-bg: #222228;
-  --controls-btn-text: #8a8a82;
-  --controls-btn-hover: #2e2e34;
-  --glow-realized: rgba(80, 200, 120, 0.04);
-  --transition-speed: 0.3s;
-}
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
 
-/* ========================================
-   Reset & Base
-   ======================================== */
-*, *::before, *::after {
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-html {
-  font-size: 16px;
   -webkit-tap-highlight-color: transparent;
 }
 
-body {
+:root {
+  --bg: #0a0a0a;
+  --bg-realized: #0b1d0b;
+  --surface: #161616;
+  --surface-border: #2a2a2a;
+  --text: #8a8a8a;
+  --text-dim: #4a4a4a;
+  --toggle-off-bg: #2a2a2a;
+  --toggle-off-knob: #666;
+  --toggle-on-bg: #4ade80;
+  --toggle-on-knob: #fff;
+  --accent: #4ade80;
+  --control-bg: #1a1a1a;
+  --font: 'JetBrains Mono', monospace;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font);
   background: var(--bg);
-  min-height: 100dvh;
-  overflow-x: hidden;
-  overflow-y: auto;
-  transition: background var(--transition-speed) ease;
-  font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
-  -webkit-user-select: none;
-  user-select: none;
+  color: var(--text);
+  touch-action: none;
 }
 
 body.realized {
   background: var(--bg-realized);
 }
 
-/* Subtle glow overlay when realized */
-body.realized::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 30%, var(--glow-realized), transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ========================================
-   Viewport
-   ======================================== */
-#viewport {
-  position: relative;
-  margin: max(6dvh, 32px) auto 0;
-  width: min(88vw, 400px);
-  min-height: 120px;
-  background: var(--viewport-bg);
-  border: 1px solid var(--viewport-border);
-  border-radius: 16px;
-  padding: 16px;
-  transition:
-    border-color var(--transition-speed) ease,
-    box-shadow var(--transition-speed) ease;
-  z-index: 2;
-}
-
-#viewport.dragover {
-  border-color: var(--viewport-border-dragover);
-  box-shadow: 0 0 24px rgba(255, 255, 255, 0.03);
-}
-
 body.realized #viewport {
-  border-color: rgba(80, 200, 120, 0.2);
-  box-shadow: 0 0 40px rgba(80, 200, 120, 0.05);
+  border-color: var(--accent);
+  box-shadow: 0 0 40px rgba(74, 222, 128, 0.08);
 }
 
-/* ========================================
-   Viewport Grid
-   ======================================== */
-#viewport-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 56px);
-  gap: 10px;
-  justify-content: center;
-  min-height: 56px;
-}
-
-/* ========================================
-   Outside Area
-   ======================================== */
-#outside {
-  position: relative;
-  width: min(88vw, 400px);
-  margin: 32px auto 120px;
-  min-height: 200px;
-  z-index: 1;
-}
-
-#outside-buttons {
+/* ── App container ── */
+#app {
+  height: 100%;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 8px 0;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 72px; /* space for fixed controls */
 }
 
-#scroll-sentinel {
-  height: 1px;
-  width: 100%;
+/* ── Viewport ── */
+#viewport {
+  flex-shrink: 0;
+  margin: 16px 16px 0;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 60px;
+  transition: border-color 0.6s, box-shadow 0.6s, background 0.6s;
 }
 
-/* ========================================
-   Toggle Buttons
-   ======================================== */
-.toggle-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  border: 1px solid var(--btn-off-border);
-  background: var(--btn-off-bg);
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.15s ease,
-    box-shadow 0.2s ease;
+#viewport.drop-target {
+  border-color: var(--accent);
+  background: #0f1f0f;
+}
+
+#viewport:empty::after {
+  content: '';
+  display: block;
+  height: 36px;
+}
+
+/* ── Scroll area ── */
+#scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  touch-action: pan-y;
+}
+
+/* ── Button block (hash + toggle) ── */
+.btn-block {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  font-size: 0.6rem;
-  color: var(--btn-text);
-  line-height: 1.2;
-  text-align: center;
-  padding: 4px;
-  word-break: keep-all;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  user-select: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s, border-color 0.2s;
+}
+
+#scroll-area .btn-block {
+  background: var(--surface);
+}
+
+.btn-block.dragging-source {
+  opacity: 0.2;
+}
+
+.btn-block.on {
+  border-color: #1a3a1a;
+}
+
+/* Hash label */
+.btn-hash {
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.btn-block.on .btn-hash {
+  color: var(--text);
+}
+
+/* Toggle switch */
+.toggle {
   flex-shrink: 0;
-  touch-action: manipulation;
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--toggle-off-bg);
   position: relative;
+  transition: background 0.2s;
 }
 
-.toggle-btn.on {
-  background: var(--btn-on-bg);
-  border-color: var(--btn-on-border);
-  color: var(--btn-on-text);
+.toggle .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--toggle-off-knob);
+  transition: transform 0.2s, background 0.2s;
 }
 
-.toggle-btn:active {
-  transform: scale(0.94);
+.btn-block.on .toggle {
+  background: var(--toggle-on-bg);
 }
 
-.toggle-btn.dragging {
-  opacity: 0.3;
-  pointer-events: none;
+.btn-block.on .toggle .knob {
+  transform: translateX(18px);
+  background: var(--toggle-on-knob);
 }
 
-/* Inside viewport: snap to grid */
-#viewport-grid .toggle-btn {
-  /* same size, grid handles positioning */
-}
-
-/* ========================================
-   Drag Ghost
-   ======================================== */
+/* ── Drag ghost ── */
 #drag-ghost {
   position: fixed;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: var(--btn-off-bg);
-  border: 1px solid var(--btn-off-border);
-  opacity: 0.85;
   pointer-events: none;
-  z-index: 100;
+  z-index: 9999;
+  opacity: 0.85;
+  transform: scale(1.04);
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
   transition: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  font-size: 0.6rem;
-  color: var(--btn-text);
 }
 
-#drag-ghost.on {
-  background: var(--btn-on-bg);
-  border-color: var(--btn-on-border);
-  color: var(--btn-on-text);
+#drag-ghost.hidden {
+  display: none;
 }
 
-/* ========================================
-   Floating Controls
-   ======================================== */
+/* ── Fixed controls ── */
 #controls {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px 20px max(16px, env(safe-area-inset-bottom));
-  background: var(--controls-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--controls-border);
-  z-index: 50;
+  gap: 8px;
+  padding: 14px 16px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  background: var(--control-bg);
+  border-top: 1px solid var(--surface-border);
+  z-index: 100;
 }
 
 #controls button {
-  font-family: inherit;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--controls-border);
-  background: var(--controls-btn-bg);
-  color: var(--controls-btn-text);
+  flex: 1;
+  padding: 12px 0;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
-  touch-action: manipulation;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 #controls button:active {
-  background: var(--controls-btn-hover);
-}
-
-@media (hover: hover) {
-  #controls button:hover {
-    background: var(--controls-btn-hover);
-    border-color: #3a3a42;
-  }
+  background: #222;
+  border-color: #444;
 }

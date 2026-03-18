@@ -1,298 +1,280 @@
-(function () {
-  /* ========================================
-     DOM References
-     ======================================== */
+(() => {
+  'use strict';
+
+  // ── State ──
+  const buttons = [];
+  let nextId = 0;
+  let pressTimer = null;
+  let pressStartX = 0;
+  let pressStartY = 0;
+  let pressTargetId = null;
+  let isDragging = false;
+  let dragId = null;
+  let dragSourceLocation = null;
+
+  const LONG_PRESS_MS = 400;
+  const MOVE_THRESHOLD = 10;
+  const SCROLL_BATCH = 20;
+
+  // ── DOM refs ──
   const viewport = document.getElementById('viewport');
-  const grid = document.getElementById('viewport-grid');
-  const outsideBtns = document.getElementById('outside-buttons');
-  const sentinel = document.getElementById('scroll-sentinel');
+  const scrollArea = document.getElementById('scroll-area');
   const ghost = document.getElementById('drag-ghost');
   const btnAllOn = document.getElementById('btn-all-on');
   const btnRandom = document.getElementById('btn-random');
 
-  /* ========================================
-     State
-     ======================================== */
-  const buttons = [];
-  let nextId = 0;
-  let textCleared = false;
-
-  // Drag
-  let drag = null;
-  let longPressTimer = null;
-  const LONG_PRESS_MS = 400;
-  const MOVE_THRESHOLD = 10;
-  const GHOST_HALF = 28; // half of 56px button
-
-  /* ========================================
-     Button Creation
-     ======================================== */
-  function makeButton(label, inViewport) {
-    const id = nextId++;
-    const el = document.createElement('button');
-    el.className = 'toggle-btn';
-    el.type = 'button';
-    if (label) el.textContent = label;
-
-    const rec = { id: id, el: el, on: false, inViewport: inViewport, label: label || null };
-    buttons.push(rec);
-    bindEvents(rec);
-    return rec;
+  // ── Helpers ──
+  function genHash() {
+    const c = '0123456789abcdef';
+    let h = '0x';
+    for (let i = 0; i < 8; i++) h += c[(Math.random() * 16) | 0];
+    return h;
   }
 
-  function findRecord(el) {
-    return buttons.find(function (b) { return b.el === el; });
+  function createButton(location) {
+    const btn = { id: nextId++, isOn: false, hash: genHash(), location };
+    buttons.push(btn);
+    return btn;
   }
 
-  /* ========================================
-     Toggle & Realization
-     ======================================== */
-  function toggle(rec) {
-    rec.on = !rec.on;
-    rec.el.classList.toggle('on', rec.on);
-    checkRealized();
+  function findBtn(id) {
+    return buttons.find(b => b.id === id);
   }
 
+  // ── Rendering ──
+  function renderBlock(btn) {
+    const el = document.createElement('div');
+    el.className = 'btn-block' + (btn.isOn ? ' on' : '');
+    el.dataset.id = btn.id;
+    el.innerHTML =
+      '<span class="btn-hash">' + btn.hash + '</span>' +
+      '<div class="toggle"><div class="knob"></div></div>';
+    bindBlock(el);
+    return el;
+  }
+
+  function syncBlockState(el, btn) {
+    el.classList.toggle('on', btn.isOn);
+  }
+
+  function getBlockEl(id) {
+    return document.querySelector('.btn-block[data-id="' + id + '"]');
+  }
+
+  // ── Initial render ──
+  function init() {
+    for (let i = 0; i < 4; i++) {
+      const btn = createButton('viewport');
+      viewport.appendChild(renderBlock(btn));
+    }
+    appendScrollBatch();
+    scrollArea.addEventListener('scroll', onScroll);
+    btnAllOn.addEventListener('click', doAllOn);
+    btnRandom.addEventListener('click', doRandom);
+  }
+
+  function appendScrollBatch() {
+    for (let i = 0; i < SCROLL_BATCH; i++) {
+      const btn = createButton('scroll');
+      scrollArea.appendChild(renderBlock(btn));
+    }
+  }
+
+  // ── Infinite scroll ──
+  function onScroll() {
+    const sa = scrollArea;
+    if (sa.scrollTop + sa.clientHeight >= sa.scrollHeight - 200) {
+      appendScrollBatch();
+    }
+  }
+
+  // ── Realization check ──
   function checkRealized() {
-    var allOn = buttons.length > 0 && buttons.every(function (b) { return b.on; });
-    document.body.classList.toggle('realized', allOn);
+    const yes = buttons.every(b => b.isOn);
+    document.body.classList.toggle('realized', yes);
   }
 
-  /* ========================================
-     Label Clearing
-     ======================================== */
-  function clearLabels() {
-    if (textCleared) return;
-    textCleared = true;
-    buttons.forEach(function (b) {
-      if (b.label) b.el.textContent = '';
-    });
+  // ── Tap / Long-press / Drag ──
+  function bindBlock(el) {
+    el.addEventListener('touchstart', onPointerDown, { passive: false });
+    el.addEventListener('touchmove', onPointerMove, { passive: false });
+    el.addEventListener('touchend', onPointerUp);
+    el.addEventListener('touchcancel', onPointerUp);
+    el.addEventListener('mousedown', onPointerDown);
   }
 
-  /* ========================================
-     Drag & Drop
-     ======================================== */
-  function bindEvents(rec) {
-    var el = rec.el;
-
-    // Prevent native context menu on long press
-    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-
-    // Touch
-    el.addEventListener('touchstart', function (e) {
-      var t = e.touches[0];
-      beginPointerDown(rec, t.clientX, t.clientY);
-    }, { passive: true });
-
-    // Mouse
-    el.addEventListener('mousedown', function (e) {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      beginPointerDown(rec, e.clientX, e.clientY);
-    });
+  function getXY(e) {
+    if (e.touches && e.touches.length > 0) {
+      return [e.touches[0].clientX, e.touches[0].clientY];
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return [e.changedTouches[0].clientX, e.changedTouches[0].clientY];
+    }
+    return [e.clientX, e.clientY];
   }
 
-  function beginPointerDown(rec, x, y) {
-    clearTimeout(longPressTimer);
+  function blockFromEvent(e) {
+    const el = e.target.closest('.btn-block');
+    if (!el) return [null, null];
+    return [el, parseInt(el.dataset.id)];
+  }
 
-    drag = {
-      record: rec,
-      startX: x,
-      startY: y,
-      active: false
-    };
+  function onPointerDown(e) {
+    const [el, id] = blockFromEvent(e);
+    if (el === null || isDragging) return;
 
-    longPressTimer = setTimeout(function () {
-      if (drag && drag.record === rec) {
-        activateDrag(x, y);
+    const [x, y] = getXY(e);
+    pressStartX = x;
+    pressStartY = y;
+    pressTargetId = id;
+
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => startDrag(el, id, x, y), LONG_PRESS_MS);
+
+    if (e.type === 'mousedown') {
+      document.addEventListener('mousemove', onPointerMove);
+      document.addEventListener('mouseup', onPointerUp);
+    }
+  }
+
+  function onPointerMove(e) {
+    const [x, y] = getXY(e);
+
+    if (!isDragging) {
+      const dx = x - pressStartX;
+      const dy = y - pressStartY;
+      if (dx * dx + dy * dy > MOVE_THRESHOLD * MOVE_THRESHOLD) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+        pressTargetId = null;
       }
-    }, LONG_PRESS_MS);
-  }
-
-  function activateDrag(x, y) {
-    if (!drag) return;
-    drag.active = true;
-    drag.record.el.classList.add('dragging');
-
-    // Show ghost
-    ghost.hidden = false;
-    ghost.className = drag.record.on ? 'on' : '';
-    ghost.textContent = '';
-    moveGhost(x, y);
-  }
-
-  function moveGhost(x, y) {
-    ghost.style.left = (x - GHOST_HALF) + 'px';
-    ghost.style.top = (y - GHOST_HALF) + 'px';
-  }
-
-  function isOverViewport(x, y) {
-    var r = viewport.getBoundingClientRect();
-    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-  }
-
-  function endDrag(x, y) {
-    clearTimeout(longPressTimer);
-    if (!drag) return;
-
-    var rec = drag.record;
-
-    // Tap (no drag activated)
-    if (!drag.active) {
-      drag = null;
-      toggle(rec);
-      return;
+      return; // let browser handle scroll
     }
 
-    // Finish drag
-    rec.el.classList.remove('dragging');
-    ghost.hidden = true;
-    viewport.classList.remove('dragover');
-
-    var over = isOverViewport(x, y);
-
-    if (over && !rec.inViewport) {
-      // Outside → viewport
-      grid.appendChild(rec.el);
-      rec.inViewport = true;
-      clearLabels();
-    } else if (!over && rec.inViewport) {
-      // Viewport → outside
-      outsideBtns.prepend(rec.el);
-      rec.inViewport = false;
-    }
-
-    drag = null;
-    checkRealized();
-  }
-
-  function cancelDrag() {
-    clearTimeout(longPressTimer);
-    if (drag && drag.active) {
-      drag.record.el.classList.remove('dragging');
-      ghost.hidden = true;
-      viewport.classList.remove('dragover');
-    }
-    drag = null;
-  }
-
-  /* ========================================
-     Global Pointer Listeners
-     ======================================== */
-
-  // --- Touch ---
-  document.addEventListener('touchmove', function (e) {
-    if (!drag) return;
-
-    var t = e.touches[0];
-    var x = t.clientX;
-    var y = t.clientY;
-
-    if (!drag.active) {
-      // Check if user is scrolling
-      var dx = x - drag.startX;
-      var dy = y - drag.startY;
-      if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
-        clearTimeout(longPressTimer);
-        drag = null;
-      }
-      return;
-    }
-
-    // Active drag — prevent scroll, move ghost
+    // Dragging — prevent scroll, move ghost
     e.preventDefault();
-    moveGhost(x, y);
-    viewport.classList.toggle('dragover', isOverViewport(x, y));
-  }, { passive: false });
+    ghost.style.left = x - ghost._offsetX + 'px';
+    ghost.style.top = y - ghost._offsetY + 'px';
 
-  document.addEventListener('touchend', function (e) {
-    if (!drag) return;
-    var t = e.changedTouches[0];
-    endDrag(t.clientX, t.clientY);
-  });
+    // Highlight viewport if pointer is over it
+    const vr = viewport.getBoundingClientRect();
+    viewport.classList.toggle('drop-target',
+      x >= vr.left && x <= vr.right && y >= vr.top && y <= vr.bottom
+    );
+  }
 
-  document.addEventListener('touchcancel', cancelDrag);
+  function onPointerUp(e) {
+    clearTimeout(pressTimer);
 
-  // --- Mouse ---
-  document.addEventListener('mousemove', function (e) {
-    if (!drag) return;
+    if (e.type === 'mouseup') {
+      document.removeEventListener('mousemove', onPointerMove);
+      document.removeEventListener('mouseup', onPointerUp);
+    }
 
-    var x = e.clientX;
-    var y = e.clientY;
-
-    if (!drag.active) {
-      var dx = x - drag.startX;
-      var dy = y - drag.startY;
-      if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
-        clearTimeout(longPressTimer);
-        drag = null;
-      }
+    if (isDragging) {
+      endDrag(e);
       return;
     }
 
-    e.preventDefault();
-    moveGhost(x, y);
-    viewport.classList.toggle('dragover', isOverViewport(x, y));
-  });
-
-  document.addEventListener('mouseup', function (e) {
-    if (!drag) return;
-    endDrag(e.clientX, e.clientY);
-  });
-
-  /* ========================================
-     Infinite Scroll
-     ======================================== */
-  function spawnBatch(count) {
-    for (var i = 0; i < count; i++) {
-      var rec = makeButton(null, false);
-      // Slight random margin for scattered look
-      rec.el.style.marginTop = (Math.random() * 10) + 'px';
-      rec.el.style.marginLeft = (Math.random() * 6) + 'px';
-      outsideBtns.appendChild(rec.el);
+    // Tap — toggle
+    if (pressTargetId !== null) {
+      const [x, y] = getXY(e);
+      const dx = x - pressStartX;
+      const dy = y - pressStartY;
+      if (dx * dx + dy * dy <= MOVE_THRESHOLD * MOVE_THRESHOLD) {
+        const btn = findBtn(pressTargetId);
+        if (btn) {
+          btn.isOn = !btn.isOn;
+          const el = getBlockEl(btn.id);
+          if (el) syncBlockState(el, btn);
+          checkRealized();
+        }
+      }
     }
+    pressTargetId = null;
   }
 
-  var scrollObserver = new IntersectionObserver(function (entries) {
-    if (entries[0].isIntersecting) {
-      spawnBatch(10);
+  // ── Drag logic ──
+  function startDrag(el, id, x, y) {
+    isDragging = true;
+    dragId = id;
+    const btn = findBtn(id);
+    dragSourceLocation = btn.location;
+
+    // Create ghost from element
+    const rect = el.getBoundingClientRect();
+    ghost._offsetX = x - rect.left;
+    ghost._offsetY = y - rect.top;
+    ghost.innerHTML = el.outerHTML;
+    ghost.style.width = rect.width + 'px';
+    ghost.style.left = rect.left + 'px';
+    ghost.style.top = rect.top + 'px';
+    ghost.classList.remove('hidden');
+
+    // Dim source
+    el.classList.add('dragging-source');
+  }
+
+  function endDrag(e) {
+    const [x, y] = getXY(e);
+    const vr = viewport.getBoundingClientRect();
+    const overViewport = x >= vr.left && x <= vr.right && y >= vr.top && y <= vr.bottom;
+
+    const btn = findBtn(dragId);
+    const srcEl = getBlockEl(dragId);
+
+    if (btn && srcEl) {
+      if (overViewport && btn.location === 'scroll') {
+        // Scroll → viewport
+        btn.location = 'viewport';
+        srcEl.remove();
+        viewport.appendChild(renderBlock(btn));
+      } else if (!overViewport && btn.location === 'viewport') {
+        // Viewport → scroll (insert at top)
+        btn.location = 'scroll';
+        srcEl.remove();
+        const newEl = renderBlock(btn);
+        scrollArea.insertBefore(newEl, scrollArea.firstChild);
+      } else {
+        // No change — restore
+        srcEl.classList.remove('dragging-source');
+      }
     }
-  }, { rootMargin: '400px' });
 
-  scrollObserver.observe(sentinel);
+    // Cleanup
+    ghost.classList.add('hidden');
+    ghost.innerHTML = '';
+    viewport.classList.remove('drop-target');
+    isDragging = false;
+    dragId = null;
+    dragSourceLocation = null;
+    pressTargetId = null;
+    checkRealized();
+  }
 
-  /* ========================================
-     Floating Controls
-     ======================================== */
-  btnAllOn.addEventListener('click', function () {
-    buttons.forEach(function (b) {
-      if (!b.inViewport) {
-        b.on = true;
-        b.el.classList.add('on');
+  // ── Bottom controls ──
+  function doAllOn() {
+    buttons.forEach(b => {
+      if (b.location === 'scroll') {
+        b.isOn = true;
+        const el = getBlockEl(b.id);
+        if (el) syncBlockState(el, b);
       }
     });
     checkRealized();
-  });
+  }
 
-  btnRandom.addEventListener('click', function () {
-    buttons.forEach(function (b) {
-      if (!b.inViewport) {
-        b.on = Math.random() > 0.5;
-        b.el.classList.toggle('on', b.on);
+  function doRandom() {
+    buttons.forEach(b => {
+      if (b.location === 'scroll') {
+        b.isOn = Math.random() < 0.5;
+        const el = getBlockEl(b.id);
+        if (el) syncBlockState(el, b);
       }
     });
     checkRealized();
-  });
+  }
 
-  /* ========================================
-     Initialization
-     ======================================== */
-  var initialLabels = ['용기', '시간', '노력', '사랑'];
-  initialLabels.forEach(function (label) {
-    var rec = makeButton(label, true);
-    grid.appendChild(rec.el);
-  });
-
-  // Initial outside buttons
-  spawnBatch(12);
+  // ── Go ──
+  init();
 })();
