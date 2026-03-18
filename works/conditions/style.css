@@ -9,7 +9,7 @@
 
 :root {
   --bg: #f5f0e8;
-  --bg-realized: #ede8dc;
+  --bg-realized: #e8f4e8;
   --surface: #fdfaf5;
   --surface-border: #ddd5c8;
   --text: #5a4a3a;
@@ -37,7 +37,7 @@ body.realized {
 
 body.realized #viewport {
   border-color: var(--accent);
-  box-shadow: 0 0 40px rgba(218, 119, 86, 0.12); /* 기존 green → warm orange */
+  box-shadow: 0 0 40px rgba(218, 119, 86, 0.25); /* 기존 green → warm orange */
 }
 
 /* ── App container ── */
