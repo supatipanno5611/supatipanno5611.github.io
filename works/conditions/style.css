@@ -8,18 +8,18 @@
 }
 
 :root {
-  --bg: #0a0a0a;
-  --bg-realized: #0b1d0b;
-  --surface: #161616;
-  --surface-border: #2a2a2a;
-  --text: #8a8a8a;
-  --text-dim: #4a4a4a;
-  --toggle-off-bg: #2a2a2a;
-  --toggle-off-knob: #666;
-  --toggle-on-bg: #4ade80;
-  --toggle-on-knob: #fff;
-  --accent: #4ade80;
-  --control-bg: #1a1a1a;
+  --bg: #1a1410;
+  --bg-realized: #1e1a12;
+  --surface: #241e17;
+  --surface-border: #3a3028;
+  --text: #a89880;
+  --text-dim: #6a5a4a;
+  --toggle-off-bg: #3a3028;
+  --toggle-off-knob: #7a6a5a;
+  --toggle-on-bg: #da7756;
+  --toggle-on-knob: #fff8f0;
+  --accent: #da7756;
+  --control-bg: #1e1813;
   --font: 'JetBrains Mono', monospace;
 }
 
@@ -37,7 +37,7 @@ body.realized {
 
 body.realized #viewport {
   border-color: var(--accent);
-  box-shadow: 0 0 40px rgba(74, 222, 128, 0.08);
+  box-shadow: 0 0 40px rgba(218, 119, 86, 0.1); /* 기존 green → warm orange */
 }
 
 /* ── App container ── */
