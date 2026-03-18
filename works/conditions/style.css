@@ -87,18 +87,15 @@ body.realized #viewport {
   touch-action: pan-y;
 }
 
-/* ── Button block (hash + toggle) ── */
+/* ── Button block (handle + hash + toggle) ── */
 .btn-block {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
+  padding: 10px 0 10px 0;
   border-radius: 10px;
   background: var(--surface);
   border: 1px solid var(--surface-border);
   user-select: none;
-  cursor: pointer;
-  touch-action: manipulation;
   transition: opacity 0.15s, transform 0.15s, border-color 0.2s;
 }
 
@@ -114,6 +111,25 @@ body.realized #viewport {
   border-color: #1a3a1a;
 }
 
+/* Drag handle */
+.drag-handle {
+  flex-shrink: 0;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-dim);
+  cursor: grab;
+  touch-action: none;
+  letter-spacing: 2px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  color: var(--text);
+}
+
 /* Hash label */
 .btn-hash {
   font-size: 13px;
@@ -123,7 +139,6 @@ body.realized #viewport {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
-  margin-right: 12px;
 }
 
 .btn-block.on .btn-hash {
@@ -139,6 +154,8 @@ body.realized #viewport {
   background: var(--toggle-off-bg);
   position: relative;
   transition: background 0.2s;
+  cursor: pointer;
+  margin: 0 10px;
 }
 
 .toggle .knob {
