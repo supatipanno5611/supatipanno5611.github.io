@@ -52,7 +52,31 @@ const AllTagsIndex: QuartzComponent = ({ cfg, fileData, allFiles }: QuartzCompon
   const byTitle = (a: QuartzPluginData, b: QuartzPluginData) =>
     (a.frontmatter?.title ?? "").localeCompare(b.frontmatter?.title ?? "", "ko")
 
-  const sorted = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b, "ko"))
+  const sorted = [...groups.entries()].sort(([aKey, aGroup], [bKey, bGroup]) => {
+    const getMaxDate = (group: TagGroup): number => {
+      const allFiles = [
+        ...group.directFiles,
+        ...[...group.children.values()].flat(),
+      ]
+      return Math.max(
+        0,
+        ...allFiles.map((f) => (f.dates?.modified ?? f.dates?.created)?.getTime() ?? 0),
+      )
+    }
+
+    const getTotalCount = (group: TagGroup): number =>
+      group.directFiles.length + [...group.children.values()].reduce((s, f) => s + f.length, 0)
+
+    const aDate = getMaxDate(aGroup)
+    const bDate = getMaxDate(bGroup)
+    if (bDate !== aDate) return bDate - aDate
+
+    const aCount = getTotalCount(aGroup)
+    const bCount = getTotalCount(bGroup)
+    if (bCount !== aCount) return bCount - aCount
+
+    return aKey.localeCompare(bKey, "ko")
+  })
 
   return (
     <div class="all-tags-index">
