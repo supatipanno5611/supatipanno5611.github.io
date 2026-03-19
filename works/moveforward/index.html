@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>앞으로 나아가기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>앞으로 나아가기</h1>
+    </header>
+
+    <div id="canvas-wrapper">
+      <canvas id="game-canvas"></canvas>
+    </div>
+
+    <div id="controls">
+      <div id="slider-row">
+        <label for="step-slider">
+          STEP SIZE
+          <span id="slider-value">40%</span>
+        </label>
+        <input type="range" id="step-slider" min="20" max="80" value="40" step="1">
+      </div>
+
+      <div id="action-row">
+        <button id="btn-undo" disabled>← UNDO</button>
+        <button id="btn-move">MOVE →</button>
+      </div>
+
+      <div id="highlight-row">
+        <button id="btn-overlap" class="btn-red" disabled>겹침 보기</button>
+        <button id="btn-new" class="btn-green" disabled>신규 보기</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
