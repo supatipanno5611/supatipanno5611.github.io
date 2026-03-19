@@ -183,14 +183,16 @@ function render(now) {
   }
 
   // ── 6. Ghosts (all previous positions) ──
-  ctx.fillStyle = '#111';
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth   = 2;
   for (let i = 0; i < state.moves.length; i++) {
-    ctx.fillRect(getX(i, layout), trackY, squareW, squareH);
+    ctx.strokeRect(getX(i, layout) + 1, trackY + 1, squareW - 2, squareH - 2);
   }
 
   // ── 7. Current square ──
-  ctx.fillStyle = '#111';
-  ctx.fillRect(currentX, trackY, squareW, squareH);
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth   = 2;
+  ctx.strokeRect(currentX + 1, trackY + 1, squareW - 2, squareH - 2);
 
   // ── 8. Highlight flash (drawn on top of current square) ──
   if (state.activeHighlight && state.moves.length > 0) {
@@ -210,8 +212,6 @@ function render(now) {
         const ox = currentX;
         const ow = lastGhostX + squareW - currentX;
         if (ow > 0) {
-          ctx.fillStyle   = '#111';
-          ctx.fillRect(ox, trackY, ow, squareH);
           ctx.strokeStyle = '#d92020';
           ctx.lineWidth   = 3;
           ctx.strokeRect(ox + 1.5, trackY + 1.5, ow - 3, squareH - 3);
