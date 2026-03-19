@@ -212,6 +212,8 @@ function render(now) {
         const ox = currentX;
         const ow = lastGhostX + squareW - currentX;
         if (ow > 0) {
+          ctx.fillStyle   = '#111';
+          ctx.fillRect(ox, trackY, ow, squareH);
           ctx.strokeStyle = '#d92020';
           ctx.lineWidth   = 3;
           ctx.strokeRect(ox + 1.5, trackY + 1.5, ow - 3, squareH - 3);
