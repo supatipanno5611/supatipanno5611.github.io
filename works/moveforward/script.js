@@ -182,13 +182,18 @@ function render(now) {
     }
   }
 
-  // ── 6. Ghosts (all previous positions) ──
-  if (state.moves.length > 0) {
+  // ── 6. Ghosts (all previous positions, fading with age) ──
+  for (let i = 0; i < state.moves.length; i++) {
+    const minOpacity = 0.25;
+    const opacity = state.moves.length === 1
+      ? 1
+      : minOpacity + (1 - minOpacity) * (i / (state.moves.length - 1));
+    ctx.globalAlpha = opacity;
     ctx.strokeStyle = '#111';
     ctx.lineWidth   = 2;
-    const ghostX = getX(state.moves.length - 2, layout);
-    ctx.strokeRect(ghostX + 1, trackY + 1, squareW - 2, squareH - 2);
+    ctx.strokeRect(getX(i, layout) + 1, trackY + 1, squareW - 2, squareH - 2);
   }
+  ctx.globalAlpha = 1;
 
   // ── 7. Current square ──
   ctx.strokeStyle = '#111';
