@@ -34,6 +34,7 @@ document.addEventListener("nav", () => {
   let touchStartX = 0
   let touchStartY = 0
   let touchStartedInsideSidebar = false
+  let sidebarWasOpen = false
 
   function handleTouchStart(e) {
     touchStartX = e.touches[0].clientX
@@ -41,6 +42,7 @@ document.addEventListener("nav", () => {
 
     const isLeftOpen = leftSidebar?.classList.contains("open")
     const isRightOpen = rightSidebar?.classList.contains("open")
+    sidebarWasOpen = isLeftOpen || isRightOpen
 
     // 사이드바가 열려있을 때 내부 터치인지 확인
     if (isLeftOpen) {
@@ -73,6 +75,8 @@ document.addEventListener("nav", () => {
 
     if (Math.abs(dy) > Math.abs(dx)) return
     if (Math.abs(dx) < 40) return
+    
+    if (sidebarWasOpen) return
 
     const isLeftOpen = leftSidebar?.classList.contains("open")
     const isRightOpen = rightSidebar?.classList.contains("open")
