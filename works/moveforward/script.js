@@ -186,7 +186,7 @@ function render(now) {
   if (state.moves.length > 0) {
     ctx.strokeStyle = '#111';
     ctx.lineWidth   = 2;
-    const ghostX = getX(state.moves.length - 1, layout);
+    const ghostX = getX(state.moves.length - 2, layout);
     ctx.strokeRect(ghostX + 1, trackY + 1, squareW - 2, squareH - 2);
   }
 
