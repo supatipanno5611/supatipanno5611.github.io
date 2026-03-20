@@ -183,10 +183,11 @@ function render(now) {
   }
 
   // ── 6. Ghosts (all previous positions) ──
-  ctx.strokeStyle = '#111';
-  ctx.lineWidth   = 2;
-  for (let i = 0; i < state.moves.length; i++) {
-    ctx.strokeRect(getX(i, layout) + 1, trackY + 1, squareW - 2, squareH - 2);
+  if (state.moves.length > 0) {
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth   = 2;
+    const ghostX = getX(state.moves.length - 1, layout);
+    ctx.strokeRect(ghostX + 1, trackY + 1, squareW - 2, squareH - 2);
   }
 
   // ── 7. Current square ──
@@ -268,13 +269,6 @@ document.getElementById('btn-move').addEventListener('click', handleMove);
 document.getElementById('btn-undo').addEventListener('click', handleUndo);
 document.getElementById('btn-overlap').addEventListener('click', handleOverlap);
 document.getElementById('btn-new').addEventListener('click', handleNew);
-
-const slider        = document.getElementById('step-slider');
-const sliderValueEl = document.getElementById('slider-value');
-slider.addEventListener('input', () => {
-  state.currentFraction    = parseInt(slider.value) / 100;
-  sliderValueEl.textContent = slider.value + '%';
-});
 
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
