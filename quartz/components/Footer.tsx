@@ -15,6 +15,7 @@ const LABELS = {
   graph: "그래프 보기",
   random: "무작위 읽기",
   tags: "전체 글 목록",
+  download: "마크다운 다운로드",
 }
 // ────────────────────────────────────────────────────────
 
@@ -107,6 +108,18 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
           <span class="btn-label">{LABELS.tags}</span>
         </button>
       </div>
+
+      {/* 줄 4: 마크다운 다운로드 (downloadable: true 인 페이지에서만 표시) */}
+      <div class="footer-row download-row" style="display: none;">
+        <a class="footer-btn download-btn" aria-label={LABELS.download} download>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" x2="12" y1="15" y2="3"/>
+          </svg>
+          <span class="btn-label">{LABELS.download}</span>
+        </a>
+      </div>
     </footer>
   )
 }
@@ -179,6 +192,26 @@ Footer.afterDOMLoaded = `
         const target = candidates[Math.floor(Math.random() * candidates.length)]
         window.location.href = "/" + target
       })
+    }
+
+    // ── 마크다운 다운로드 버튼 ──
+    const downloadRow = document.querySelector(".download-row")
+    const downloadBtn = document.querySelector(".download-btn")
+    if (downloadRow && downloadBtn) {
+      const slug = document.body.dataset.slug
+      const rawUrl = "/raw/" + slug + ".md"
+      fetch(rawUrl, { method: "HEAD" })
+        .then((res) => {
+          if (res.ok) {
+            downloadBtn.href = rawUrl
+            downloadRow.style.display = ""
+          } else {
+            downloadRow.style.display = "none"
+          }
+        })
+        .catch(() => {
+          downloadRow.style.display = "none"
+        })
     }
   }
 

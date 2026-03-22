@@ -1,6 +1,7 @@
 ---
 created: 2026-02-24
 description: viriya에 오신 것을 환영합니다. Ven. Waharaka Thero님의 가르침을 공부하시고 도과를 성취하시길 기원합니다.
+downloadable: false
 modified: 2026-03-21
 tags: []
 title: 홈
