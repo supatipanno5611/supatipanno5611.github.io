@@ -113,9 +113,9 @@ const Footer: QuartzComponent = ({ allFiles }: QuartzComponentProps) => {
       <div class="footer-row download-row" style="display: none;">
         <a class="footer-btn download-btn" aria-label={LABELS.download} download>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 15V3"/>
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" x2="12" y1="15" y2="3"/>
+            <path d="m7 10 5 5 5-5"/>
           </svg>
           <span class="btn-label">{LABELS.download}</span>
         </a>
@@ -200,11 +200,24 @@ Footer.afterDOMLoaded = `
     if (downloadRow && downloadBtn) {
       const slug = document.body.dataset.slug
       const rawUrl = "/raw/" + slug + ".md"
+      const filename = slug.split("/").pop() + ".md"
       fetch(rawUrl, { method: "HEAD" })
         .then((res) => {
           if (res.ok) {
-            downloadBtn.href = rawUrl
             downloadRow.style.display = ""
+            downloadBtn.addEventListener("click", () => {
+              fetch(rawUrl)
+                .then((res) => res.text())
+                .then((text) => {
+                  const blob = new Blob([text], { type: "text/markdown" })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement("a")
+                  a.href = url
+                  a.download = filename
+                  a.click()
+                  URL.revokeObjectURL(url)
+                })
+            })
           } else {
             downloadRow.style.display = "none"
           }
