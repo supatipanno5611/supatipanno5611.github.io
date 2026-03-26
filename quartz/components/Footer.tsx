@@ -15,7 +15,7 @@ const LABELS = {
   graph: "그래프 보기",
   random: "무작위 읽기",
   tags: "전체 글 목록",
-  download: "마크다운 다운로드",
+  download: "현재 페이지 마크다운으로 다운로드",
 }
 // ────────────────────────────────────────────────────────
 
@@ -181,7 +181,7 @@ Footer.afterDOMLoaded = `
       })
     }
 
-    // ── 인연 따라 읽기 버튼 ──
+    // ── 무작위 읽기 버튼 ──
     const randomBtn = document.querySelector(".random-page-btn")
     if (randomBtn) {
       randomBtn.addEventListener("click", () => {
