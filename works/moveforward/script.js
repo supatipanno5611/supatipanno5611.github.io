@@ -9,7 +9,6 @@ const HIGHLIGHT_HOLD_END = 1000;  // ms — fade out starts here
 
 const state = {
   moves: [],            // Array<{ fraction: number }> — history of each move
-  ghosts: [],           // Array<{ x: number }> — ghost positions, never removed on undo
   currentFraction: 0.4, // slider value applied to next move
   activeHighlight: null, // { type: 'overlap' | 'new', startTime: number } | null
   animation: null,       // { fromX, toX, startTime } | null
@@ -64,13 +63,12 @@ function highlightOpacity(elapsed) {
 // ─── Button state ─────────────────────────────────────────────────────────────
 
 function updateButtons() {
-  const anim      = state.animation !== null;
-  const empty     = state.moves.length === 0;
-  const noGhosts  = state.ghosts.length === 0;
+  const anim  = state.animation !== null;
+  const empty = state.moves.length === 0;
   document.getElementById('btn-move').disabled    = anim || state.isFinished;
   document.getElementById('btn-undo').disabled    = anim || empty;
-  document.getElementById('btn-overlap').disabled = anim || noGhosts;
-  document.getElementById('btn-new').disabled     = anim || noGhosts;
+  document.getElementById('btn-overlap').disabled = anim || empty;
+  document.getElementById('btn-new').disabled     = anim || empty;
 }
 
 // ─── Action handlers ──────────────────────────────────────────────────────────
@@ -89,7 +87,6 @@ function handleMove() {
     finished = true;
   }
 
-  state.ghosts.push({ x: fromX });
   state.moves.push({ fraction });
   state.activeHighlight = null;
   state.animation = {
@@ -185,18 +182,33 @@ function render(now) {
     }
   }
 
-  // ── 6. Ghosts (all previous positions, fading with age) ──
-  for (let i = 0; i < state.ghosts.length; i++) {
-    const minOpacity = 0.25;
-    const opacity = state.ghosts.length === 1
-      ? 1
-      : minOpacity + (1 - minOpacity) * (i / (state.ghosts.length - 1));
-    ctx.globalAlpha = opacity;
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth   = 2;
-    ctx.strokeRect(state.ghosts[i].x + 1, trackY + 1, squareW - 2, squareH - 2);
+  // ── 6. Ghosts (fading behind current square, no overlap) ──
+  if (state.moves.length > 0) {
+    const step     = state.currentFraction * squareW;
+    const minOp    = 0.15;
+    let   n        = 0;
+    let   ghostX   = currentX - step;
+    while (ghostX >= startX - squareW) {
+      n++;
+      ghostX -= step;
+    }
+    const totalGhosts = n;
+    n = 0;
+    ghostX = currentX - step;
+    while (ghostX >= startX - squareW) {
+      // n=0 is closest to current (most opaque), n=totalGhosts-1 is farthest (most transparent)
+      const opacity = totalGhosts === 1
+        ? 1
+        : 1 - (1 - minOp) * (n / (totalGhosts - 1));
+      ctx.globalAlpha = opacity;
+      ctx.strokeStyle = '#111';
+      ctx.lineWidth   = 2;
+      ctx.strokeRect(ghostX + 1, trackY + 1, squareW - 2, squareH - 2);
+      n++;
+      ghostX -= step;
+    }
+    ctx.globalAlpha = 1;
   }
-  ctx.globalAlpha = 1;
 
   // ── 7. Current square ──
   ctx.strokeStyle = '#111';
@@ -211,7 +223,7 @@ function render(now) {
       state.activeHighlight = null;
     } else {
       const opacity     = highlightOpacity(elapsed);
-      const lastGhostX  = state.ghosts[state.ghosts.length - 1].x;
+      const lastGhostX  = currentX - state.currentFraction * squareW;
 
       ctx.globalAlpha = opacity;
 
