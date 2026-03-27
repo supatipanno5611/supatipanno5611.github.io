@@ -9,6 +9,7 @@ const HIGHLIGHT_HOLD_END = 1000;  // ms — fade out starts here
 
 const state = {
   moves: [],            // Array<{ fraction: number }> — history of each move
+  ghosts: [],           // Array<{ x: number }> — ghost positions, never removed on undo
   currentFraction: 0.4, // slider value applied to next move
   activeHighlight: null, // { type: 'overlap' | 'new', startTime: number } | null
   animation: null,       // { fromX, toX, startTime } | null
@@ -63,12 +64,13 @@ function highlightOpacity(elapsed) {
 // ─── Button state ─────────────────────────────────────────────────────────────
 
 function updateButtons() {
-  const anim  = state.animation !== null;
-  const empty = state.moves.length === 0;
+  const anim      = state.animation !== null;
+  const empty     = state.moves.length === 0;
+  const noGhosts  = state.ghosts.length === 0;
   document.getElementById('btn-move').disabled    = anim || state.isFinished;
   document.getElementById('btn-undo').disabled    = anim || empty;
-  document.getElementById('btn-overlap').disabled = anim || empty;
-  document.getElementById('btn-new').disabled     = anim || empty;
+  document.getElementById('btn-overlap').disabled = anim || noGhosts;
+  document.getElementById('btn-new').disabled     = anim || noGhosts;
 }
 
 // ─── Action handlers ──────────────────────────────────────────────────────────
@@ -87,6 +89,7 @@ function handleMove() {
     finished = true;
   }
 
+  state.ghosts.push({ x: fromX });
   state.moves.push({ fraction });
   state.activeHighlight = null;
   state.animation = {
@@ -183,15 +186,15 @@ function render(now) {
   }
 
   // ── 6. Ghosts (all previous positions, fading with age) ──
-  for (let i = 0; i < state.moves.length; i++) {
+  for (let i = 0; i < state.ghosts.length; i++) {
     const minOpacity = 0.25;
-    const opacity = state.moves.length === 1
+    const opacity = state.ghosts.length === 1
       ? 1
-      : minOpacity + (1 - minOpacity) * (i / (state.moves.length - 1));
+      : minOpacity + (1 - minOpacity) * (i / (state.ghosts.length - 1));
     ctx.globalAlpha = opacity;
     ctx.strokeStyle = '#111';
     ctx.lineWidth   = 2;
-    ctx.strokeRect(getX(i, layout) + 1, trackY + 1, squareW - 2, squareH - 2);
+    ctx.strokeRect(state.ghosts[i].x + 1, trackY + 1, squareW - 2, squareH - 2);
   }
   ctx.globalAlpha = 1;
 
@@ -208,7 +211,7 @@ function render(now) {
       state.activeHighlight = null;
     } else {
       const opacity     = highlightOpacity(elapsed);
-      const lastGhostX  = getX(state.moves.length - 1, layout);
+      const lastGhostX  = state.ghosts[state.ghosts.length - 1].x;
 
       ctx.globalAlpha = opacity;
 
