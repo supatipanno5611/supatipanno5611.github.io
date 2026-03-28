@@ -1,37 +1,76 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>앞으로 나아가기</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moveforward</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
+
     <header>
-      <h1>앞으로 나아가기</h1>
+      <span class="title">move</span>
+      <span class="step-counter">STEP <span id="step-count">0</span></span>
     </header>
 
-    <div id="canvas-wrapper">
-      <canvas id="game-canvas"></canvas>
+    <main>
+      <div id="stage-wrapper">
+        <div id="stage">
+          <!-- 잔상들이 여기에 동적으로 추가됨 -->
+          <!-- 현재 사각형 -->
+          <div id="rect"></div>
+          <!-- 결승선 -->
+          <div id="finish-line">
+            <span class="finish-label">FINISH</span>
+          </div>
+          <!-- 하이라이트 오버레이 -->
+          <div id="highlight-overlay" class="hidden"></div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="controls">
+        <div class="controls-left">
+          <button id="btn-move" class="btn btn-primary">
+            <span class="btn-label">MOVE</span>
+            <span class="btn-sub">ADVANCE</span>
+          </button>
+          <button id="btn-undo" class="btn btn-secondary" disabled>
+            <span class="btn-label">UNDO</span>
+            <span class="btn-sub">UNDO</span>
+          </button>
+        </div>
+        <div class="controls-right">
+          <button id="btn-highlight-overlap" class="btn btn-highlight" disabled>
+            <span class="btn-label">OVERLAP</span>
+            <span class="btn-sub">OVERLAP</span>
+          </button>
+          <button id="btn-highlight-new" class="btn btn-highlight" disabled>
+            <span class="btn-label">FORWARD</span>
+            <span class="btn-sub">NEW</span>
+          </button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- 완료 화면 -->
+    <div id="finish-screen" class="hidden">
+      <div class="finish-content">
+        <div class="finish-title">FINISH</div>
+        <div class="finish-steps">Total <span id="finish-step-count"></span> moved</div>
+        <button id="btn-restart" class="btn btn-primary">
+          <span class="btn-label">RESTART</span>
+          <span class="btn-sub">RESTART</span>
+        </button>
+      </div>
     </div>
 
-    <div id="controls">
-
-      <div id="action-row">
-        <button id="btn-undo" disabled>← UNDO</button>
-        <button id="btn-move">MOVE →</button>
-      </div>
-
-      <div id="highlight-row">
-        <button id="btn-overlap" class="btn-red" disabled>겹침 보기</button>
-        <button id="btn-new" class="btn-green" disabled>신규 보기</button>
-      </div>
-    </div>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>

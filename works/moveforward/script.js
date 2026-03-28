@@ -1,295 +1,249 @@
-// ─── Constants ────────────────────────────────────────────────────────────────
+/* ── Constants ─────────────────────────────────────── */
+const RECT_SIZE    = 72;
+const STEP_MIN     = 0.20; // 너비의 최소 전진 비율
+const STEP_MAX     = 0.70; // 너비의 최대 전진 비율
+const HIGHLIGHT_MS = 800;  // 하이라이트 표시 시간
 
-const ANIM_DURATION      = 300;   // ms — move/undo slide animation
-const HIGHLIGHT_DURATION = 1500;  // ms — total highlight flash duration
-const HIGHLIGHT_FADE_IN  = 200;   // ms — fade in period
-const HIGHLIGHT_HOLD_END = 1000;  // ms — fade out starts here
-
-// ─── State ────────────────────────────────────────────────────────────────────
-
+/* ── State ─────────────────────────────────────────── */
 const state = {
-  moves: [],            // Array<{ fraction: number }> — history of each move
-  currentFraction: 0.4, // slider value applied to next move
-  activeHighlight: null, // { type: 'overlap' | 'new', startTime: number } | null
-  animation: null,       // { fromX, toX, startTime } | null
-  isFinished: false
+  positions: [],        // 이동 이력 [x0, x1, ...]
+  isAnimating: false,   // 슬라이드 애니메이션 중
+  isHighlighting: false // 하이라이트 표시 중
 };
 
-// ─── Canvas ───────────────────────────────────────────────────────────────────
+/* ── DOM refs ──────────────────────────────────────── */
+const stage          = document.getElementById('stage');
+const rect           = document.getElementById('rect');
+const overlay        = document.getElementById('highlight-overlay');
+const btnMove        = document.getElementById('btn-move');
+const btnUndo        = document.getElementById('btn-undo');
+const btnOverlap     = document.getElementById('btn-highlight-overlap');
+const btnNew         = document.getElementById('btn-highlight-new');
+const stepCountEl    = document.getElementById('step-count');
+const finishScreen   = document.getElementById('finish-screen');
+const finishStepEl   = document.getElementById('finish-step-count');
+const btnRestart     = document.getElementById('btn-restart');
 
-const canvas = document.getElementById('game-canvas');
-const ctx    = canvas.getContext('2d');
-
-// Returns layout constants derived from canvas size.
-// Called every frame so resize is automatically handled.
-function getLayout() {
-  const W = canvas.width;
-  const H = canvas.height;
-  const squareW = Math.min(W * 0.14, 80);
-  const squareH = squareW;
-  const trackY  = (H - squareH) / 2;
-  const startX  = squareW * 0.7;
-  const finishX = W - squareW * 1.9;
-  return { W, H, squareW, squareH, trackY, startX, finishX };
+/* ── Derived values ────────────────────────────────── */
+function stageWidth() {
+  return stage.getBoundingClientRect().width;
 }
 
-// Returns the pixel x position of the left edge of the square after `stepIndex` moves.
-function getX(stepIndex, layout) {
-  let x = layout.startX;
-  for (let i = 0; i < stepIndex; i++) {
-    x += state.moves[i].fraction * layout.squareW;
+function finishX() {
+  // 결승선: 오른쪽 끝에서 24px 안쪽
+  return stageWidth() - RECT_SIZE - 24;
+}
+
+function startX() {
+  return 24;
+}
+
+/* ── Ghost management ──────────────────────────────── */
+function renderGhosts() {
+  // 기존 ghost 모두 제거
+  stage.querySelectorAll('.ghost').forEach(el => el.remove());
+
+  const len = state.positions.length;
+  if (len < 2) return;
+
+  // positions[0 .. len-2] 까지가 잔상 (마지막은 현재 사각형)
+  const ghostCount = len - 1;
+
+  for (let i = 0; i < ghostCount; i++) {
+    const ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.style.left = state.positions[i] + 'px';
+
+    // 오래된 것(i=0)은 흐리고, 최근(i=ghostCount-1)은 진하게
+    const opacity = 0.15 + 0.65 * (i / (ghostCount - 1 || 1));
+    ghost.style.opacity = opacity;
+
+    stage.appendChild(ghost);
   }
-  return x;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-
-function easeInOut(t) {
-  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-}
-
-// Returns opacity (0–1) for the highlight flash at `elapsed` ms into the animation.
-function highlightOpacity(elapsed) {
-  if (elapsed < HIGHLIGHT_FADE_IN)  return elapsed / HIGHLIGHT_FADE_IN;
-  if (elapsed < HIGHLIGHT_HOLD_END) return 1;
-  if (elapsed < HIGHLIGHT_DURATION) return 1 - (elapsed - HIGHLIGHT_HOLD_END) / (HIGHLIGHT_DURATION - HIGHLIGHT_HOLD_END);
-  return 0;
-}
-
-// ─── Button state ─────────────────────────────────────────────────────────────
-
-function updateButtons() {
-  const anim  = state.animation !== null;
-  const empty = state.moves.length === 0;
-  document.getElementById('btn-move').disabled    = anim || state.isFinished;
-  document.getElementById('btn-undo').disabled    = anim || empty;
-  document.getElementById('btn-overlap').disabled = anim || empty;
-  document.getElementById('btn-new').disabled     = anim || empty;
-}
-
-// ─── Action handlers ──────────────────────────────────────────────────────────
-
-function handleMove() {
-  if (state.animation || state.isFinished) return;
-
-  const layout   = getLayout();
-  const fromX    = getX(state.moves.length, layout);
-  let fraction   = state.currentFraction;
-  let finished   = false;
-
-  // Clamp if the move would overshoot the finish line.
-  if (fromX + fraction * layout.squareW >= layout.finishX) {
-    fraction = (layout.finishX - fromX) / layout.squareW;
-    finished = true;
-  }
-
-  state.moves.push({ fraction });
-  state.activeHighlight = null;
-  state.animation = {
-    fromX,
-    toX: fromX + fraction * layout.squareW,
-    startTime: performance.now()
-  };
-  if (finished) state.isFinished = true;
-  updateButtons();
-}
-
-function handleUndo() {
-  if (state.animation || state.moves.length === 0) return;
-
-  const layout = getLayout();
-  const fromX  = getX(state.moves.length, layout);
-  state.moves.pop();
-  const toX = getX(state.moves.length, layout);
-
-  state.activeHighlight = null;
-  state.isFinished      = false;
-  state.animation = { fromX, toX, startTime: performance.now() };
-  updateButtons();
-}
-
-function handleOverlap() {
-  if (state.animation || state.moves.length === 0) return;
-  state.activeHighlight = { type: 'overlap', startTime: performance.now() };
-}
-
-function handleNew() {
-  if (state.animation || state.moves.length === 0) return;
-  state.activeHighlight = { type: 'new', startTime: performance.now() };
-}
-
-// ─── Render loop ──────────────────────────────────────────────────────────────
-
-function render(now) {
-  requestAnimationFrame(render);
-
-  const layout = getLayout();
-  const { W, H, squareW, squareH, trackY, startX, finishX } = layout;
-
-  // ── 1. Resolve current square x (lerped if animating) ──
-  let currentX;
-  if (state.animation) {
-    const elapsed = now - state.animation.startTime;
-    const t = Math.min(elapsed / ANIM_DURATION, 1);
-    currentX = lerp(state.animation.fromX, state.animation.toX, easeInOut(t));
-    if (t >= 1) {
-      currentX        = state.animation.toX;
-      state.animation = null;
-      updateButtons();
-    }
+/* ── Rect position ─────────────────────────────────── */
+function setRectPosition(x, animate = true) {
+  if (!animate) {
+    // transition 일시 비활성화
+    rect.style.transition = 'none';
+    rect.style.left = x + 'px';
+    // reflow 강제 후 transition 복원
+    rect.getBoundingClientRect();
+    rect.style.transition = '';
   } else {
-    currentX = getX(state.moves.length, layout);
-  }
-
-  // ── 2. Clear ──
-  ctx.clearRect(0, 0, W, H);
-
-  // ── 3. Track background ──
-  ctx.fillStyle = '#d8d4cc';
-  ctx.fillRect(startX - 4, trackY - 4, finishX + squareW - startX + 8, squareH + 8);
-
-  // ── 4. Start marker (dashed vertical line) ──
-  ctx.strokeStyle = '#999';
-  ctx.lineWidth   = 2;
-  ctx.setLineDash([4, 4]);
-  ctx.beginPath();
-  ctx.moveTo(startX, trackY - 12);
-  ctx.lineTo(startX, trackY + squareH + 12);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // ── 5. Finish line + checkered flag ──
-  const lineX = finishX + squareW;
-
-  ctx.strokeStyle = '#111';
-  ctx.lineWidth   = 4;
-  ctx.beginPath();
-  ctx.moveTo(lineX, trackY - 20);
-  ctx.lineTo(lineX, trackY + squareH + 20);
-  ctx.stroke();
-
-  const fs   = Math.max(6, Math.round(squareW * 0.13));
-  const cols = 3;
-  const rows = 3;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      ctx.fillStyle = (r + c) % 2 === 0 ? '#111' : '#fff';
-      ctx.fillRect(lineX + 4 + c * fs, trackY - 20 + r * fs, fs, fs);
-    }
-  }
-
-  // ── 6. Ghosts (fading behind current square, no overlap) ──
-  if (state.moves.length > 0) {
-    const step     = state.currentFraction * squareW;
-    const minOp    = 0.15;
-    let   n        = 0;
-    let   ghostX   = currentX - step;
-    while (ghostX >= startX - squareW) {
-      n++;
-      ghostX -= step;
-    }
-    const totalGhosts = n;
-    n = 0;
-    ghostX = currentX - step;
-    while (ghostX >= startX - squareW) {
-      // n=0 is closest to current (most opaque), n=totalGhosts-1 is farthest (most transparent)
-      const opacity = totalGhosts === 1
-        ? 1
-        : 1 - (1 - minOp) * (n / (totalGhosts - 1));
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = '#111';
-      ctx.lineWidth   = 2;
-      ctx.strokeRect(ghostX + 1, trackY + 1, squareW - 2, squareH - 2);
-      n++;
-      ghostX -= step;
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  // ── 7. Current square ──
-  ctx.strokeStyle = '#111';
-  ctx.lineWidth   = 2;
-  ctx.strokeRect(currentX + 1, trackY + 1, squareW - 2, squareH - 2);
-
-  // ── 8. Highlight flash (drawn on top of current square) ──
-  if (state.activeHighlight && state.moves.length > 0) {
-    const elapsed = now - state.activeHighlight.startTime;
-
-    if (elapsed >= HIGHLIGHT_DURATION) {
-      state.activeHighlight = null;
-    } else {
-      const opacity     = highlightOpacity(elapsed);
-      const lastGhostX  = currentX - state.currentFraction * squareW;
-
-      ctx.globalAlpha = opacity;
-
-      if (state.activeHighlight.type === 'overlap') {
-        // Overlap region: left part of current square that shares space with the last ghost.
-        // x range: [currentX  …  lastGhostX + squareW]
-        const ox = currentX;
-        const ow = lastGhostX + squareW - currentX;
-        if (ow > 0) {
-          ctx.fillStyle   = '#111';
-          ctx.fillRect(ox, trackY, ow, squareH);
-          ctx.strokeStyle = '#d92020';
-          ctx.lineWidth   = 3;
-          ctx.strokeRect(ox + 1.5, trackY + 1.5, ow - 3, squareH - 3);
-        }
-      } else {
-        // New region: right part of current square that goes beyond the last ghost.
-        // x range: [lastGhostX + squareW  …  currentX + squareW]
-        const nx = lastGhostX + squareW;
-        const nw = currentX + squareW - nx;
-        if (nw > 0) {
-          ctx.fillStyle   = '#fff';
-          ctx.fillRect(nx, trackY, nw, squareH);
-          ctx.strokeStyle = '#1a9e3f';
-          ctx.lineWidth   = 3;
-          ctx.strokeRect(nx + 1.5, trackY + 1.5, nw - 3, squareH - 3);
-        }
-      }
-
-      ctx.globalAlpha = 1;
-    }
-  }
-
-  // ── 9. Finish overlay ──
-  if (state.isFinished && !state.animation) {
-    ctx.fillStyle = 'rgba(240, 237, 232, 0.88)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle    = '#111';
-    ctx.font         = `bold ${Math.round(squareW * 0.85)}px "IBM Plex Mono", monospace`;
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('FINISH!', W / 2, H / 2);
+    rect.style.left = x + 'px';
   }
 }
 
-// ─── Canvas resize ────────────────────────────────────────────────────────────
+/* ── Update UI ─────────────────────────────────────── */
+function updateUI() {
+  const len = state.positions.length;
+  stepCountEl.textContent = len - 1; // 이동 횟수 = 위치 수 - 1
 
-function resizeCanvas() {
-  const w = canvas.parentElement.clientWidth;
-  const h = Math.round(w * 0.38);
-  canvas.width  = w;
-  canvas.height = h;
-  // Stale pixel positions in animation: snap to end.
-  if (state.animation) {
-    state.animation = null;
-    updateButtons();
+  const canInteract = !state.isAnimating && !state.isHighlighting;
+  const hasMoved    = len >= 2;
+  const isFinished  = len >= 1 && state.positions[len - 1] >= finishX();
+
+  btnMove.disabled    = !canInteract || isFinished;
+  btnUndo.disabled    = !canInteract || !hasMoved;
+  btnOverlap.disabled = !canInteract || !hasMoved;
+  btnNew.disabled     = !canInteract || !hasMoved;
+}
+
+/* ── Move ──────────────────────────────────────────── */
+function move() {
+  if (state.isAnimating || state.isHighlighting) return;
+
+  const currentX = state.positions[state.positions.length - 1];
+  const maxStep  = RECT_SIZE * STEP_MAX;
+  const minStep  = RECT_SIZE * STEP_MIN;
+
+  // 결승선을 넘지 않는 범위에서 랜덤 전진
+  const fX      = finishX();
+  const maxMove = fX - currentX;
+
+  if (maxMove <= 0) return; // 이미 결승선
+
+  const step    = Math.min(
+    minStep + Math.random() * (maxStep - minStep),
+    maxMove
+  );
+  const newX    = currentX + step;
+
+  state.positions.push(newX);
+  state.isAnimating = true;
+  updateUI();
+
+  // 이전 위치에 ghost 먼저 렌더 (transition 시작 전)
+  renderGhosts();
+
+  // 현재 사각형 이동
+  setRectPosition(newX, true);
+
+  // transition 종료 대기
+  rect.addEventListener('transitionend', onMoveEnd, { once: true });
+}
+
+function onMoveEnd() {
+  state.isAnimating = false;
+
+  const len      = state.positions.length;
+  const currentX = state.positions[len - 1];
+  const fX       = finishX();
+
+  if (currentX >= fX) {
+    showFinish();
+  } else {
+    updateUI();
   }
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
+/* ── Undo ──────────────────────────────────────────── */
+function undo() {
+  if (state.isAnimating || state.isHighlighting) return;
+  if (state.positions.length < 2) return;
 
-document.getElementById('btn-move').addEventListener('click', handleMove);
-document.getElementById('btn-undo').addEventListener('click', handleUndo);
-document.getElementById('btn-overlap').addEventListener('click', handleOverlap);
-document.getElementById('btn-new').addEventListener('click', handleNew);
+  state.positions.pop();
+  const prevX = state.positions[state.positions.length - 1];
 
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-requestAnimationFrame(render);
+  state.isAnimating = true;
+  updateUI();
+
+  renderGhosts();
+  setRectPosition(prevX, true);
+
+  rect.addEventListener('transitionend', onUndoEnd, { once: true });
+}
+
+function onUndoEnd() {
+  state.isAnimating = false;
+  updateUI();
+}
+
+/* ── Highlight ─────────────────────────────────────── */
+let highlightTimer = null;
+
+function showHighlight(type) {
+  if (state.isAnimating || state.isHighlighting) return;
+  if (state.positions.length < 2) return;
+
+  const len      = state.positions.length;
+  const currentX = state.positions[len - 1];
+  const prevX    = state.positions[len - 2];
+
+  let left, width;
+
+  if (type === 'overlap') {
+    // 겹침: 현재 사각형 left ~ 직전 잔상 right
+    left  = currentX;
+    width = (prevX + RECT_SIZE) - currentX;
+  } else {
+    // 신규: 직전 잔상 right ~ 현재 사각형 right
+    left  = prevX + RECT_SIZE;
+    width = (currentX + RECT_SIZE) - (prevX + RECT_SIZE);
+  }
+
+  if (width <= 0) return;
+
+  overlay.style.left  = left + 'px';
+  overlay.style.width = width + 'px';
+  overlay.className   = type === 'overlap' ? 'overlap' : 'new-area';
+
+  state.isHighlighting = true;
+  updateUI();
+
+  highlightTimer = setTimeout(() => {
+    overlay.classList.add('hidden');
+    overlay.addEventListener('transitionend', () => {
+      overlay.className = 'hidden';
+      state.isHighlighting = false;
+      updateUI();
+    }, { once: true });
+  }, HIGHLIGHT_MS);
+}
+
+/* ── Finish ────────────────────────────────────────── */
+function showFinish() {
+  const steps = state.positions.length - 1;
+  finishStepEl.textContent = steps;
+  finishScreen.classList.remove('hidden');
+  updateUI();
+}
+
+function restart() {
+  // 상태 초기화
+  state.positions     = [];
+  state.isAnimating   = false;
+  state.isHighlighting = false;
+
+  clearTimeout(highlightTimer);
+  overlay.className = 'hidden';
+
+  // ghost 제거
+  stage.querySelectorAll('.ghost').forEach(el => el.remove());
+
+  // 사각형 초기 위치
+  setRectPosition(startX(), false);
+  state.positions.push(startX());
+
+  finishScreen.classList.add('hidden');
+  updateUI();
+}
+
+/* ── Init ──────────────────────────────────────────── */
+function init() {
+  const x0 = startX();
+  state.positions.push(x0);
+  setRectPosition(x0, false);
+  updateUI();
+}
+
+/* ── Events ────────────────────────────────────────── */
+btnMove.addEventListener('click', move);
+btnUndo.addEventListener('click', undo);
+btnOverlap.addEventListener('click', () => showHighlight('overlap'));
+btnNew.addEventListener('click', () => showHighlight('new'));
+btnRestart.addEventListener('click', restart);
+
+init();
