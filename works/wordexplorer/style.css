@@ -59,10 +59,21 @@ body {
   cursor: default;
 }
 
+/* 기존 .word.highlighted를 아래로 교체 */
 .word.highlighted {
-  color: var(--highlight);
-  background: var(--highlight-bg);
+  color: var(--highlight); /* 텍스트 자체 색상 변경 */
+  background: none; /* 배경은 없음 */
+  
+  /* 여러 겹의 text-shadow로 부드러운 발광 효과 */
+  text-shadow: 
+    0 0 5px rgba(245, 200, 66, 0.8),
+    0 0 10px rgba(245, 200, 66, 0.4),
+    0 0 15px rgba(245, 200, 66, 0.2);
+  
+  cursor: default;
+  transition: text-shadow 0.2s ease-out, color 0.2s ease-out;
 }
+
 
 #cursor {
   display: inline-block;
