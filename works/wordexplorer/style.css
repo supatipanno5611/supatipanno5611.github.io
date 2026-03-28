@@ -76,19 +76,8 @@ body {
 
 
 #cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1.1em;
-  background: var(--text);
-  margin-left: 1px;
-  
-  /* 기존 vertical-align: text-bottom; 을 지우고 아래 속성을 추가하세요 */
-  transform: translateY(0.15em); 
-  
-  animation: blink 1s step-end infinite;
-  flex-shrink: 0;
+  display: none !important;
 }
-
 
 #cursor.hidden { display: none; }
 
