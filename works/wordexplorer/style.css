@@ -59,21 +59,23 @@ body {
   cursor: default;
 }
 
-/* 기존 .word.highlighted를 아래로 교체 */
+/* 부모인 .word는 커서 상태만 관리 */
 .word.highlighted {
-  color: var(--highlight); /* 텍스트 자체 색상 변경 */
-  background: none; /* 배경은 없음 */
+  cursor: default;
+}
+
+/* 실제 소프트 글루(발광) 효과는 문장부호를 제외한 .core에만 적용 */
+.word.highlighted .core {
+  color: var(--highlight);
+  background: none;
   
-  /* 여러 겹의 text-shadow로 부드러운 발광 효과 */
   text-shadow: 
     0 0 5px rgba(245, 200, 66, 0.8),
     0 0 10px rgba(245, 200, 66, 0.4),
     0 0 15px rgba(245, 200, 66, 0.2);
   
-  cursor: default;
   transition: text-shadow 0.2s ease-out, color 0.2s ease-out;
 }
-
 
 #cursor {
   display: none !important;

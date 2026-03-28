@@ -22,6 +22,14 @@ function wordKey(w) {
   return w.replace(/[^a-zA-Z'-]/g, '').toLowerCase();
 }
 
+function wrapCoreWord(w) {
+  const match = w.match(/^([^a-zA-Z'-]*)([a-zA-Z'-]+)([^a-zA-Z'-]*)$/);
+  if (match) {
+    return `${match[1]}<span class="core">${match[2]}</span>${match[3]}`;
+  }
+  return `<span class="core">${w}</span>`;
+}
+
 function fetchRandom() {
   const pool = QUOTES.filter(q => q.content.length >= 40 && q.content.length <= 120);
   return pool[Math.floor(Math.random() * pool.length)];
@@ -62,6 +70,8 @@ async function typeQuote(quote, highlightWord) {
       span.textContent = w.slice(0, ci + 1);
       await sleep(28 + Math.random() * 22);
     }
+    
+    span.innerHTML = wrapCoreWord(w);
 
     if (wi < rawWords.length - 1) await sleep(18);
   }
@@ -123,7 +133,8 @@ async function doTransition(clickedSpan, clickedWord, newQuote) {
   busy = true;
 
   if (currentQuote) {
-    history.push({ word: clickedWord, quote: currentQuote });
+  	const coreText = clickedWord.match(/([a-zA-Z'-]+)/)?.[1] || clickedWord;
+  	history.push({ word: coreText, quote: currentQuote });
     renderTrail();
   }
 
@@ -194,12 +205,14 @@ async function typeQuoteAround(quote, anchorWord, anchorSpan) {
       span.textContent = rawWords[i].slice(0, ci + 1);
       await sleep(28 + Math.random() * 22);
     }
+    span.innerHTML = wrapCoreWord(rawWords[i]);
     attachWordEvents(span, rawWords[i], i);
     await sleep(16);
   }
 
-  anchorSpan.textContent = rawWords[anchorIndex] || anchorWord;
-  attachWordEvents(anchorSpan, rawWords[anchorIndex] || anchorWord, anchorIndex);
+  const targetWord = rawWords[anchorIndex] || anchorWord;
+  anchorSpan.innerHTML = wrapCoreWord(targetWord);
+  attachWordEvents(anchorSpan, targetWord, anchorIndex);
 
   cursor.className = 'typing';
   quoteWrap.insertBefore(cursor, anchorSpan.nextSibling);
@@ -214,6 +227,7 @@ async function typeQuoteAround(quote, anchorWord, anchorSpan) {
       span.textContent = rawWords[i].slice(0, ci + 1);
       await sleep(28 + Math.random() * 22);
     }
+    span.innerHTML = wrapCoreWord(rawWords[i]);
     attachWordEvents(span, rawWords[i], i);
     await sleep(16);
   }
