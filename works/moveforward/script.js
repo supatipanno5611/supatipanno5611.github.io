@@ -1,7 +1,7 @@
 /* ── Constants ─────────────────────────────────────── */
 const RECT_SIZE    = 72;
-const STEP_MIN     = 0.20; // 너비의 최소 전진 비율
-const STEP_MAX     = 0.70; // 너비의 최대 전진 비율
+const STEP_MIN     = 0.50; // 너비의 최소 전진 비율
+const STEP_MAX     = 0.50; // 너비의 최대 전진 비율
 const HIGHLIGHT_MS = 800;  // 하이라이트 표시 시간
 
 /* ── State ─────────────────────────────────────────── */
