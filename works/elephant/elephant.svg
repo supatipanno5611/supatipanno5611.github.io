@@ -1,0 +1,206 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" id="elephant-svg">
+  <defs>
+    <style>
+      .part-layer { transition: opacity 0.3s ease; }
+      .outline-layer { transition: opacity 0.3s ease; }
+      .interp-layer { transition: opacity 0.3s ease; opacity: 0; }
+    </style>
+  </defs>
+
+  <!-- ===================== -->
+  <!-- OUTLINE PLACEHOLDERS  -->
+  <!-- ===================== -->
+
+  <!-- body outline -->
+  <ellipse class="outline-layer" id="outline-body"
+    cx="210" cy="170" rx="110" ry="75"
+    fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- head outline -->
+  <ellipse class="outline-layer" id="outline-head"
+    cx="108" cy="130" rx="52" ry="48"
+    fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- trunk outline -->
+  <path class="outline-layer" id="outline-trunk"
+    d="M80,158 Q60,185 58,210 Q56,230 70,232 Q84,234 86,215 Q88,195 95,175"
+    fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- ear outline -->
+  <ellipse class="outline-layer" id="outline-ear"
+    cx="148" cy="118" rx="30" ry="38"
+    fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- front leg outline -->
+  <rect class="outline-layer" id="outline-frontleg"
+    x="148" y="228" width="32" height="52" rx="10"
+    fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- back leg outline -->
+  <rect class="outline-layer" id="outline-backleg"
+    x="268" y="228" width="32" height="52" rx="10"
+    fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- tail outline -->
+  <path class="outline-layer" id="outline-tail"
+    d="M318,155 Q345,148 350,170 Q354,188 340,195"
+    fill="none" stroke="#aaa" stroke-width="2" stroke-dasharray="6 4"/>
+
+  <!-- ===================== -->
+  <!-- ACTUAL PART LAYERS    -->
+  <!-- ===================== -->
+
+  <!-- body -->
+  <g class="part-layer" id="layer-body" opacity="0">
+    <ellipse cx="210" cy="170" rx="110" ry="75" fill="#7a8fa6"/>
+  </g>
+
+  <!-- head -->
+  <g class="part-layer" id="layer-head" opacity="0">
+    <!-- head -->
+    <ellipse cx="108" cy="130" rx="52" ry="48" fill="#7a8fa6"/>
+    <!-- tusk -->
+    <path d="M82,160 Q68,172 72,184 Q76,194 88,190 Q96,178 90,165" fill="#e8dcc8"/>
+  </g>
+
+  <!-- trunk -->
+  <g class="part-layer" id="layer-trunk" opacity="0">
+    <path d="M80,158 Q60,185 58,210 Q56,230 70,232 Q84,234 86,215 Q88,195 95,175"
+      fill="#6e8299" stroke="#6e8299" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+
+  <!-- ear -->
+  <g class="part-layer" id="layer-ear" opacity="0">
+    <ellipse cx="148" cy="118" rx="30" ry="38" fill="#8fa3b8" opacity="0.9"/>
+    <!-- inner ear -->
+    <ellipse cx="147" cy="118" rx="18" ry="24" fill="#c4a882" opacity="0.5"/>
+  </g>
+
+  <!-- front leg -->
+  <g class="part-layer" id="layer-frontleg" opacity="0">
+    <rect x="148" y="228" width="32" height="52" rx="10" fill="#6e8299"/>
+    <!-- toenails -->
+    <ellipse cx="156" cy="279" rx="5" ry="3" fill="#d4c9b8"/>
+    <ellipse cx="168" cy="280" rx="5" ry="3" fill="#d4c9b8"/>
+    <ellipse cx="178" cy="279" rx="4" ry="3" fill="#d4c9b8"/>
+  </g>
+
+  <!-- back leg -->
+  <g class="part-layer" id="layer-backleg" opacity="0">
+    <rect x="268" y="228" width="32" height="52" rx="10" fill="#6e8299"/>
+    <!-- toenails -->
+    <ellipse cx="276" cy="279" rx="5" ry="3" fill="#d4c9b8"/>
+    <ellipse cx="288" cy="280" rx="5" ry="3" fill="#d4c9b8"/>
+    <ellipse cx="298" cy="279" rx="4" ry="3" fill="#d4c9b8"/>
+  </g>
+
+  <!-- tail -->
+  <g class="part-layer" id="layer-tail" opacity="0">
+    <path d="M318,155 Q345,148 350,170 Q354,188 340,195"
+      fill="none" stroke="#6e8299" stroke-width="8" stroke-linecap="round"/>
+    <!-- tuft -->
+    <path d="M336,193 Q330,202 334,208 M340,195 Q338,205 343,210 M344,193 Q348,202 345,209"
+      fill="none" stroke="#5a6e82" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- ===================== -->
+  <!-- INTERPRETATION LAYERS -->
+  <!-- ===================== -->
+
+  <!-- snake (trunk → snake) -->
+  <g class="interp-layer" id="interp-trunk">
+    <path d="M80,158 Q60,185 58,210 Q56,230 70,232 Q84,234 86,215 Q88,195 95,175"
+      fill="none" stroke="#8fbc8f" stroke-width="14" stroke-linecap="round" opacity="0.55"/>
+    <!-- snake head -->
+    <ellipse cx="70" cy="233" rx="12" ry="8" fill="#6aaa6a" opacity="0.6" transform="rotate(-10,70,233)"/>
+    <!-- tongue -->
+    <path d="M62,234 Q55,230 52,226 M62,234 Q55,236 53,240"
+      fill="none" stroke="#cc4444" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  </g>
+
+  <!-- fan/wing (ear → fan) -->
+  <g class="interp-layer" id="interp-ear">
+    <ellipse cx="148" cy="118" rx="30" ry="38" fill="#e8b86d" opacity="0.4"/>
+    <!-- fan lines -->
+    <line x1="148" y1="118" x2="132" y2="85" stroke="#c8942a" stroke-width="2" opacity="0.6"/>
+    <line x1="148" y1="118" x2="140" y2="82" stroke="#c8942a" stroke-width="2" opacity="0.6"/>
+    <line x1="148" y1="118" x2="150" y2="81" stroke="#c8942a" stroke-width="2" opacity="0.6"/>
+    <line x1="148" y1="118" x2="160" y2="83" stroke="#c8942a" stroke-width="2" opacity="0.6"/>
+    <line x1="148" y1="118" x2="168" y2="88" stroke="#c8942a" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <!-- wall (body → wall) -->
+  <g class="interp-layer" id="interp-body">
+    <ellipse cx="210" cy="170" rx="110" ry="75" fill="#bc9b7a" opacity="0.3"/>
+    <!-- brick pattern -->
+    <line x1="100" y1="150" x2="320" y2="150" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="100" y1="165" x2="320" y2="165" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="100" y1="180" x2="320" y2="180" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="100" y1="195" x2="320" y2="195" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="130" y1="150" x2="130" y2="165" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="180" y1="150" x2="180" y2="165" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="240" y1="150" x2="240" y2="165" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="155" y1="165" x2="155" y2="180" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="210" y1="165" x2="210" y2="180" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="270" y1="165" x2="270" y2="180" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="130" y1="180" x2="130" y2="195" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="195" y1="180" x2="195" y2="195" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+    <line x1="260" y1="180" x2="260" y2="195" stroke="#9a7a5a" stroke-width="1.5" opacity="0.5"/>
+  </g>
+
+  <!-- pillar (front leg → tree trunk) -->
+  <g class="interp-layer" id="interp-frontleg">
+    <rect x="148" y="228" width="32" height="52" rx="4" fill="#8B6340" opacity="0.45"/>
+    <!-- bark lines -->
+    <path d="M155,235 Q158,245 154,255" fill="none" stroke="#6B4320" stroke-width="1.5" opacity="0.6"/>
+    <path d="M165,230 Q168,245 164,260" fill="none" stroke="#6B4320" stroke-width="1.5" opacity="0.6"/>
+    <path d="M172,233 Q175,248 171,258" fill="none" stroke="#6B4320" stroke-width="1.5" opacity="0.6"/>
+  </g>
+
+  <!-- pillar (back leg → tree trunk) -->
+  <g class="interp-layer" id="interp-backleg">
+    <rect x="268" y="228" width="32" height="52" rx="4" fill="#8B6340" opacity="0.45"/>
+    <path d="M275,235 Q278,245 274,255" fill="none" stroke="#6B4320" stroke-width="1.5" opacity="0.6"/>
+    <path d="M285,230 Q288,245 284,260" fill="none" stroke="#6B4320" stroke-width="1.5" opacity="0.6"/>
+    <path d="M292,233 Q295,248 291,258" fill="none" stroke="#6B4320" stroke-width="1.5" opacity="0.6"/>
+  </g>
+
+  <!-- rope (tail → rope) -->
+  <g class="interp-layer" id="interp-tail">
+    <path d="M318,155 Q345,148 350,170 Q354,188 340,195"
+      fill="none" stroke="#c8a86a" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+    <!-- rope twist marks -->
+    <path d="M326,153 Q330,160 328,167" fill="none" stroke="#a08040" stroke-width="2" opacity="0.6"/>
+    <path d="M336,150 Q340,158 338,165" fill="none" stroke="#a08040" stroke-width="2" opacity="0.6"/>
+    <path d="M344,153 Q348,162 347,170" fill="none" stroke="#a08040" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <!-- spear (head/tusk → spear) -->
+  <g class="interp-layer" id="interp-head">
+    <!-- spear shaft along tusk -->
+    <path d="M72,168 Q78,178 88,188" fill="none" stroke="#b8a070" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+    <!-- spearhead -->
+    <polygon points="72,168 64,162 70,156" fill="#c0c0c0" opacity="0.6"/>
+  </g>
+
+  <!-- ===================== -->
+  <!-- TOUCH HIT AREAS       -->
+  <!-- (transparent, on top) -->
+  <!-- ===================== -->
+  <ellipse id="hit-body" cx="210" cy="170" rx="110" ry="75"
+    fill="transparent" style="cursor:pointer"/>
+  <ellipse id="hit-head" cx="108" cy="130" rx="52" ry="48"
+    fill="transparent" style="cursor:pointer"/>
+  <path id="hit-trunk"
+    d="M68,155 Q48,182 46,210 Q44,235 72,237 Q98,239 100,212 Q102,188 108,168 Z"
+    fill="transparent" style="cursor:pointer"/>
+  <ellipse id="hit-ear" cx="148" cy="118" rx="30" ry="38"
+    fill="transparent" style="cursor:pointer"/>
+  <rect id="hit-frontleg" x="140" y="220" width="48" height="62" rx="10"
+    fill="transparent" style="cursor:pointer"/>
+  <rect id="hit-backleg" x="260" y="220" width="48" height="62" rx="10"
+    fill="transparent" style="cursor:pointer"/>
+  <path id="hit-tail"
+    d="M312,142 Q358,135 362,175 Q366,200 338,208 Q320,210 316,168 Z"
+    fill="transparent" style="cursor:pointer"/>
+</svg>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>장님 코끼리 만지기</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <header>
+    <h1>맹인과 코끼리</h1>
+    <p>부위를 터치하여 탐색하세요</p>
+  </header>
+
+  <div id="stage">
+    <!-- SVG inlined by JS -->
+    <span id="stage-hint">↑ 점선 영역을 터치하세요</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div id="panel">
+
+    <div id="panel-empty">
+      <span class="arrow">↑</span>
+      <span>아직 발견된 부위가 없습니다</span>
+    </div>
+
+    <div id="global-toggles">
+      <button class="global-btn perception" id="btn-all-perception">지각 전체 토글</button>
+      <button class="global-btn interp"     id="btn-all-interp">해석 전체 토글</button>
+    </div>
+
+    <div id="col-headers">
+      <div class="col-header">지각한 것</div>
+      <div class="col-header">해석한 것</div>
+    </div>
+
+    <div id="panel-rows"></div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
