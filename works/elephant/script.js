@@ -1,12 +1,14 @@
 // ── DATA ──────────────────────────────────────────────────────────────
 const PARTS = [
-  { id: 'body',     label: '몸통',   sub: 'body',      interp: '벽',     interpSub: 'wall'    },
-  { id: 'head',     label: '머리',   sub: 'head',      interp: '창',     interpSub: 'spear'   },
-  { id: 'trunk',    label: '코',     sub: 'trunk',     interp: '뱀',     interpSub: 'snake'   },
-  { id: 'ear',      label: '귀',     sub: 'ear',       interp: '부채',   interpSub: 'fan'     },
-  { id: 'frontleg', label: '앞다리', sub: 'front leg', interp: '나무 기둥', interpSub: 'pillar' },
-  { id: 'backleg',  label: '뒷다리', sub: 'back leg',  interp: '나무 기둥', interpSub: 'pillar' },
-  { id: 'tail',     label: '꼬리',   sub: 'tail',      interp: '밧줄',   interpSub: 'rope'    },
+  { id: 'head',     label: '머리',     sub: 'head',        interp: '물항아리',       interpSub: 'water jar'   },
+  { id: 'ear',      label: '귀',       sub: 'ear',         interp: '키질하는 바구니', interpSub: 'winnow'      },
+  { id: 'tusk',     label: '상아',     sub: 'tusk',        interp: '쟁기',           interpSub: 'plough'      },
+  { id: 'trunk',    label: '코',       sub: 'trunk',       interp: '쟁기막대',       interpSub: 'plough beam' },
+  { id: 'body',     label: '몸통',     sub: 'body',        interp: '창고',           interpSub: 'storehouse'  },
+  { id: 'leg',      label: '다리',     sub: 'leg',         interp: '기둥',           interpSub: 'pillar'      },
+  { id: 'thigh',    label: '허벅지',   sub: 'thigh',       interp: '절구',           interpSub: 'mortar'      },
+  { id: 'tail',     label: '꼬리',     sub: 'tail',        interp: '곤봉',           interpSub: 'club'        },
+  { id: 'tailtuft', label: '꼬리의 술', sub: 'tail tuft',  interp: '빗자루',         interpSub: 'broom'       },
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────
