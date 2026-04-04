@@ -12,5 +12,5 @@ title: 인터렉션 작업물
   <li><a href="/works/conditions.html" target="_blank">조건성</a></li>
   <li><a href="/works/moveforward.html" target="_blank">앞으로 나아가기</a></li>
   <li><a href="/works/wordexplorer.html" target="_blank">단어와 문장</a></li>
-  <li><a href="/works/elephant.html" target="_blank">장님 코끼리 만지기</a></li>
+  <li><a href="/works/pathfinding.html" target="_blank">경로 찾기</a></li>
 </ul>
