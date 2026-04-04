@@ -295,6 +295,7 @@ function reset() {
   edgeFadeT       = 0;
   edgeFadeFrom    = -1; edgeFadeTo = -1; edgeFadeAlpha = 0;
   currentEdgeAlpha = 0;
+  doneEdges       = [];
   arrivedT        = 0; arrivedFade = 1.0;
   hint.textContent = '터치해서 시작';
   hint.classList.remove('hidden');
@@ -431,6 +432,7 @@ function tickEdgeFade(dt) {
 
   if (edgeFadeT >= EDGE_FADE_DUR) {
     edgeFadeAlpha = 0;
+    doneEdges.push({ from: edgeFadeFrom, to: edgeFadeTo });
     STATE = 'TRAVELING';
   }
 }
@@ -450,6 +452,7 @@ function enterTraveling() {
   activeEdge = null;
   edgeFadeFrom = -1; edgeFadeTo = -1; edgeFadeAlpha = 0;
   currentEdgeAlpha = 0;
+  doneEdges = [];
 }
 
 function enterArrived() { STATE = 'ARRIVED'; arrivedT = 0; arrivedFade = 1.0; }
@@ -473,21 +476,29 @@ function drawAllEdges() {
     ctx.strokeStyle = EDGE_DIM; ctx.lineWidth = 1; ctx.stroke();
   }
 
+  // 지나온 엣지 (청백으로 여리게 유지)
+  for (const e of doneEdges) {
+    const na = nodes[e.from], nb = nodes[e.to];
+    ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
+    ctx.strokeStyle = 'rgba(140,165,210,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  // fade 중인 엣지 (초록→청백 전환)
+  if (edgeFadeFrom >= 0 && edgeFadeAlpha > 0.01) {
+    const na = nodes[edgeFadeFrom], nb = nodes[edgeFadeTo];
+    const a = edgeFadeAlpha;
+    // 초록 성분이 빠지면서 청백이 드러남
+    ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
+    ctx.strokeStyle = `rgba(90,215,150,${a * 0.85})`; ctx.lineWidth = 1.8; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
+    ctx.strokeStyle = `rgba(140,165,210,${(1 - a) * 0.55})`; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
   // 현재 이동 중인 엣지 (초록, 이동하면서 밝아짐)
-  if ((STATE === 'TRAVELING') && travelSegIdx < detourPath.length - 1) {
+  if (STATE === 'TRAVELING' && travelSegIdx < detourPath.length - 1) {
     const a = detourPath[travelSegIdx], b = detourPath[travelSegIdx + 1];
     const na = nodes[a], nb = nodes[b];
     const alpha = currentEdgeAlpha;
-    ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
-    ctx.strokeStyle = `rgba(90,215,150,${alpha * 0.25})`; ctx.lineWidth = 8; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
-    ctx.strokeStyle = `rgba(90,215,150,${alpha * 0.85})`; ctx.lineWidth = 1.8; ctx.stroke();
-  }
-
-  // fade 중인 엣지 (지나온 엣지 dim으로 돌아감)
-  if (edgeFadeFrom >= 0 && edgeFadeAlpha > 0.01) {
-    const na = nodes[edgeFadeFrom], nb = nodes[edgeFadeTo];
-    const alpha = edgeFadeAlpha;
     ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
     ctx.strokeStyle = `rgba(90,215,150,${alpha * 0.25})`; ctx.lineWidth = 8; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
