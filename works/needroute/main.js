@@ -88,6 +88,17 @@ let edgeFadeAlpha = 0;    // 1→0
 let arrivedT    = 0;
 let arrivedFade = 1.0;
 
+// 고립 덩어리 fade
+let isolatedNodes = new Set(); // REVEAL 시 계산
+let isolatedAlpha = 1.0;       // 1→0
+
+// goalB 도착 pulse
+let goalBPulseT   = -1;        // -1이면 비활성
+const GOAL_B_PULSE_DUR = 600;  // ms
+
+// flash 강도 감쇠
+let flashCycleCount = 0;       // bounce 횟수 누적
+
 let lastTs = 0;
 let animId = null;
 
@@ -297,6 +308,9 @@ function reset() {
   currentEdgeAlpha = 0;
   doneEdges       = [];
   arrivedT        = 0; arrivedFade = 1.0;
+  isolatedNodes   = new Set(); isolatedAlpha = 1.0;
+  goalBPulseT     = -1;
+  flashCycleCount = 0;
   hint.textContent = '터치해서 시작';
   hint.classList.remove('hidden');
   STATE = 'IDLE';
@@ -374,18 +388,38 @@ function enterStuck() {
   const dx = wall.x - dot.x, dy = wall.y - dot.y;
   const d = Math.hypot(dx, dy) || 1;
   bounceDir = { x: dx/d, y: dy/d };
+  flashCycleCount = 0;
   triggerBounceFlash();
 }
 
-function triggerBounceFlash() { flashT = 0; flashOn = true; }
+function triggerBounceFlash() { flashT = 0; flashOn = true; flashCycleCount++; }
 
 // REVEAL
 function tickReveal(dt) {
+  // 첫 프레임에 고립 덩어리 계산
+  if (revealT === 0) {
+    const reachable = new Set();
+    const q = [startIdx];
+    reachable.add(startIdx);
+    while (q.length > 0) {
+      const cur = q.shift();
+      for (const nb of adjList[cur]) {
+        if (reachable.has(nb)) continue;
+        if (isWall(cur, nb)) continue;
+        reachable.add(nb); q.push(nb);
+      }
+    }
+    isolatedNodes = new Set(
+      nodes.map((_, i) => i).filter(i => !reachable.has(i))
+    );
+    isolatedAlpha = 1.0;
+  }
   revealT += dt;
   const t = easeOut(Math.min(revealT / REVEAL_DUR, 1));
-  wallAlpha   = 1 - t;
-  detourAlpha = t;
-  goalBAlpha  = GOAL_B_INIT_ALPHA + t * (GOAL_B_INIT_ALPHA * 0.5); // 희미하게만
+  wallAlpha     = 1 - t;
+  isolatedAlpha = 1 - t;
+  detourAlpha   = t;
+  goalBAlpha    = GOAL_B_INIT_ALPHA + t * (GOAL_B_INIT_ALPHA * 0.5);
   pathFadeAlpha = 0;
   if (revealT >= REVEAL_DUR) enterTraveling();
 }
@@ -423,6 +457,7 @@ function tickTraveling(dt) {
 // EDGE_FADE: 방금 지나온 엣지가 dim으로 돌아가는 동안 대기
 function tickEdgeFade(dt) {
   edgeFadeT += dt;
+  if (goalBPulseT >= 0) goalBPulseT += dt;
   edgeFadeAlpha = Math.max(0, 1 - edgeFadeT / EDGE_FADE_DUR);
 
   // 목적지B alpha도 계속 업데이트
@@ -440,6 +475,7 @@ function tickEdgeFade(dt) {
 // ARRIVED
 function tickArrived(dt) {
   arrivedT += dt;
+  if (goalBPulseT >= 0) goalBPulseT += dt;
   const half = ARRIVED_DUR * 0.55;
   if (arrivedT > half) arrivedFade = Math.max(0, 1 - (arrivedT - half) / (ARRIVED_DUR - half));
   if (arrivedT >= ARRIVED_DUR) reset();
@@ -455,7 +491,10 @@ function enterTraveling() {
   doneEdges = [];
 }
 
-function enterArrived() { STATE = 'ARRIVED'; arrivedT = 0; arrivedFade = 1.0; }
+function enterArrived() {
+  STATE = 'ARRIVED'; arrivedT = 0; arrivedFade = 1.0;
+  goalBPulseT = 0;  // pulse 시작
+}
 
 // ── 드로잉 ────────────────────────────────────────────────────────────────────
 function draw() {
@@ -472,15 +511,19 @@ function drawAllEdges() {
   for (const key of edgeSet) {
     const [a, b] = key.split('_').map(Number);
     if (isWall(a, b)) { drawWallEdge(nodes[a], nodes[b]); continue; }
+    // 고립 엣지: 양쪽 노드 모두 고립인 경우 fade
+    const iso = isolatedNodes.has(a) && isolatedNodes.has(b);
+    const edgeA = iso ? isolatedAlpha : 1.0;
+    if (iso && edgeA <= 0.01) continue;
     ctx.beginPath(); ctx.moveTo(nodes[a].x, nodes[a].y); ctx.lineTo(nodes[b].x, nodes[b].y);
-    ctx.strokeStyle = EDGE_DIM; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = `rgba(100,120,165,${0.28 * edgeA})`; ctx.lineWidth = 1; ctx.stroke();
   }
 
   // 지나온 엣지 (청백으로 여리게 유지)
   for (const e of doneEdges) {
     const na = nodes[e.from], nb = nodes[e.to];
     ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
-    ctx.strokeStyle = 'rgba(140,165,210,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.strokeStyle = 'rgba(90,215,150,0.45)'; ctx.lineWidth = 1.5; ctx.stroke();
   }
 
   // fade 중인 엣지 (초록→청백 전환)
@@ -507,23 +550,27 @@ function drawAllEdges() {
 }
 
 function drawWallEdge(na, nb) {
-  if (flashOn && flashT < FLASH_DUR) {
-    const fa = (1 - flashT / FLASH_DUR) * 0.85;
+  // REVEAL 이후: 서서히 사라짐
+  if (STATE === 'REVEAL' || STATE === 'TRAVELING' || STATE === 'EDGE_FADE' || STATE === 'ARRIVED') {
+    if (wallAlpha <= 0.01) return;
     ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
-    ctx.strokeStyle = `rgba(${WALL_R},${WALL_G},${WALL_B_C},${fa*0.3})`; ctx.lineWidth = 9; ctx.stroke();
+    ctx.strokeStyle = `rgba(${WALL_R},${WALL_G},${WALL_B_C},${wallAlpha * 0.35})`; ctx.lineWidth = 1.5; ctx.stroke();
+    return;
+  }
+  // flash 중: 강도는 횟수에 따라 감쇠 (최대 1.0 → 최소 0.35)
+  if (flashOn && flashT < FLASH_DUR) {
+    const decay = Math.max(0.35, 1.0 - (flashCycleCount - 1) * 0.15);
+    const fa = (1 - flashT / FLASH_DUR) * decay;
+    ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
+    ctx.strokeStyle = `rgba(${WALL_R},${WALL_G},${WALL_B_C},${fa * 0.35})`; ctx.lineWidth = 11; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
     ctx.strokeStyle = `rgba(${WALL_R},${WALL_G},${WALL_B_C},${fa})`; ctx.lineWidth = 2; ctx.stroke();
     if (flashT >= FLASH_DUR) flashOn = false;
     return;
   }
-  if (STATE === 'REVEAL' || STATE === 'TRAVELING' || STATE === 'EDGE_FADE' || STATE === 'ARRIVED') {
-    if (wallAlpha <= 0.01) return;
-    ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
-    ctx.strokeStyle = `rgba(100,120,165,${wallAlpha * 0.28})`; ctx.lineWidth = 1; ctx.stroke();
-    return;
-  }
+  // 평소: 희미한 빨간색
   ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
-  ctx.strokeStyle = EDGE_DIM; ctx.lineWidth = 1; ctx.stroke();
+  ctx.strokeStyle = `rgba(${WALL_R},${WALL_G},${WALL_B_C},0.18)`; ctx.lineWidth = 1.2; ctx.stroke();
 }
 
 function drawActivePath() {
@@ -544,9 +591,14 @@ function drawActivePath() {
 function drawNodes() {
   for (let i = 0; i < nodes.length; i++) {
     const n = nodes[i];
+    // 고립 노드: isolatedAlpha 적용
+    const isIsolated = isolatedNodes.has(i);
+    const nodeAlpha  = isIsolated ? isolatedAlpha : 1.0;
+    if (isIsolated && nodeAlpha <= 0.01) continue;
+
     if (i === goalAIdx) {
       const fa = (STATE === 'TRAVELING' || STATE === 'EDGE_FADE' || STATE === 'ARRIVED')
-        ? arrivedFade * 0.5 : 1;
+        ? arrivedFade * 0.5 : nodeAlpha;
       ctx.beginPath(); ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(150,175,220,${0.65 * fa})`; ctx.lineWidth = 1.2; ctx.stroke();
     } else if (i === goalBIdx) {
@@ -554,6 +606,14 @@ function drawNodes() {
       const fa = STATE === 'ARRIVED' ? arrivedFade : 1;
       const a  = goalBAlpha * fa;
       const s  = 8;
+      // goalB pulse: 도착 시 외곽 원이 커지며 사라짐
+      if (goalBPulseT >= 0 && goalBPulseT < GOAL_B_PULSE_DUR) {
+        const pt = goalBPulseT / GOAL_B_PULSE_DUR;
+        const pulseR = s * 1.4 + pt * s * 3;
+        const pulseA = (1 - pt) * 0.6 * fa;
+        ctx.beginPath(); ctx.arc(n.x, n.y, pulseR, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(90,215,150,${pulseA})`; ctx.lineWidth = 1.5; ctx.stroke();
+      }
       ctx.strokeStyle = `rgba(90,215,150,${a * 0.9})`;
       ctx.lineWidth = 1.8; ctx.lineCap = 'round';
       ctx.beginPath();
@@ -564,10 +624,10 @@ function drawNodes() {
       ctx.strokeStyle = `rgba(90,215,150,${a * 0.25})`; ctx.lineWidth = 1; ctx.stroke();
     } else if (i === startIdx) {
       ctx.beginPath(); ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
-      ctx.strokeStyle = NODE_DIM; ctx.lineWidth = 1; ctx.stroke();
+      ctx.strokeStyle = `rgba(110,130,175,${0.45 * nodeAlpha})`; ctx.lineWidth = 1; ctx.stroke();
     } else {
       ctx.beginPath(); ctx.arc(n.x, n.y, 2, 0, Math.PI * 2);
-      ctx.fillStyle = NODE_DIM; ctx.fill();
+      ctx.fillStyle = `rgba(110,130,175,${0.45 * nodeAlpha})`; ctx.fill();
     }
   }
 }
@@ -618,6 +678,7 @@ canvas.addEventListener('pointerdown', () => {
 
 function enterReveal() {
   STATE = 'REVEAL'; canReveal = false; revealT = 0;
+  flashOn = false; flashT = 0;
   hint.classList.add('hidden');
 }
 
