@@ -216,107 +216,63 @@ function bfs(from, to, wFrom, wTo, extraVisited = new Set()) {
 }
 
 // ── 우회 경로 생성 ────────────────────────────────────────────────────────────
-// 구역 순회 + 가중치 탐색.
-// - 목적지B 반대 구역 제외
-// - goalAIdx, goalBIdx, startIdx 경유 금지
-// - 이미 지나온 노드 재방문 금지 (되돌아가기 방지)
+// 알고리즘:
+// - 첫 스텝: wallFrom 인접 노드 중 goalB까지 거리 기준 두 번째로 가까운 노드 선택
+// - 이후 스텝: 현재 노드 인접 노드 중 goalB까지 거리가 현재보다 멀어지지 않는 노드들 중 랜덤
+// - 막힌 경우(조건 만족 노드 없음): 가장 덜 멀어지는 노드 선택 (폴백)
+// - 방문한 노드 재방문 금지 (되돌아가기 방지)
+// - goalAIdx, startIdx 경유 금지
 function buildDetourPath(from, to) {
   const toNode = nodes[to];
-  const goalDir = { x: toNode.x - W/2, y: toNode.y - H/2 };
-  const goalDirLen = Math.hypot(goalDir.x, goalDir.y) || 1;
+  const forbidden = new Set([wallFrom, wallTo, goalAIdx, startIdx]);
 
-  const zones = [
-    { x: W * 0.25, y: H * 0.25 },
-    { x: W * 0.75, y: H * 0.25 },
-    { x: W * 0.25, y: H * 0.75 },
-    { x: W * 0.75, y: H * 0.75 },
-  ];
-
-  // 반대 구역 제외
-  const filteredZones = zones.filter(z => {
-    const zd = { x: z.x - W/2, y: z.y - H/2 };
-    const zdLen = Math.hypot(zd.x, zd.y) || 1;
-    const dp = goalDir.x * zd.x + goalDir.y * zd.y;
-    return dp > -0.3 * goalDirLen * zdLen;
-  });
-
-  // 경유 노드 선택: goalAIdx, goalBIdx, startIdx, wallFrom, wallTo 제외
-  const hardExclude = new Set([from, to, wallFrom, wallTo, startIdx, goalAIdx, goalBIdx]);
-  const waypoints = [];
-  for (const z of filteredZones) {
-    const cands = nodes
-      .map((n, i) => ({ i, zoneDist: Math.hypot(n.x - z.x, n.y - z.y) }))
-      .filter(e => !hardExclude.has(e.i) && !waypoints.includes(e.i))
-      .filter(e => {
-        // 반대 방향 노드 배제
-        const nd = { x: nodes[e.i].x - W/2, y: nodes[e.i].y - H/2 };
-        const ndLen = Math.hypot(nd.x, nd.y) || 1;
-        const dp = goalDir.x * nd.x + goalDir.y * nd.y;
-        return dp > -0.4 * goalDirLen * ndLen;
-      })
-      .sort((a, b) => a.zoneDist - b.zoneDist);
-
-    if (cands.length > 0) {
-      waypoints.push(cands[0].i);
-      hardExclude.add(cands[0].i);
-    }
+  function distToGoal(i) {
+    return Math.hypot(nodes[i].x - toNode.x, nodes[i].y - toNode.y);
   }
 
-  // from → wp0 → wp1 → ... → to 순서로 연결
-  // 각 구간 BFS 시 이미 fullPath에 있는 노드를 extraVisited로 전달 → 되돌아가기 방지
-  const sequence = [from, ...waypoints, to];
-  const fullPath = [from];
   const visited = new Set([from]);
+  const path = [from];
+  let cur = from;
+  const MAX_STEPS = nodes.length * 2; // 무한루프 방지
 
-  for (let i = 0; i < sequence.length - 1; i++) {
-    const segFrom = sequence[i];
-    const segTo   = sequence[i + 1];
+  for (let step = 0; step < MAX_STEPS; step++) {
+    if (cur === to) break;
 
-    // 가중치 구간 탐색 시도 (중간 우회 노드 삽입)
-    const seg = buildWeightedSegment(segFrom, segTo, visited);
-    if (seg && seg.length >= 2) {
-      for (const n of seg.slice(1)) { fullPath.push(n); visited.add(n); }
+    const curDist = distToGoal(cur);
+
+    // 인접 노드 후보: 방문 안 했고, 금지 아니고, 벽 엣지 아님 (to는 항상 허용)
+    const neighbors = adjList[cur].filter(nb => {
+      if (nb !== to && visited.has(nb)) return false;
+      if (nb !== to && forbidden.has(nb)) return false;
+      if (isWall(cur, nb)) return false;
+      return true;
+    });
+
+    if (neighbors.length === 0) return null; // 막힘, buildGraph에서 재시도
+
+    if (step === 0) {
+      // 첫 스텝: goalB까지 거리 기준 정렬 후 두 번째 선택
+      const sorted = neighbors.slice().sort((a, b) => distToGoal(a) - distToGoal(b));
+      const pick = sorted.length >= 2 ? sorted[1] : sorted[0];
+      path.push(pick); visited.add(pick); cur = pick;
     } else {
-      // 폴백: 일반 BFS (되돌아가기 방지 포함)
-      const fallback = bfs(segFrom, segTo, wallFrom, wallTo, visited);
-      if (!fallback) return null;
-      for (const n of fallback.slice(1)) { fullPath.push(n); visited.add(n); }
+      // 이후 스텝: goalB까지 거리가 현재보다 멀어지지 않는 후보
+      const notFarther = neighbors.filter(nb => distToGoal(nb) <= curDist);
+
+      let pick;
+      if (notFarther.length > 0) {
+        // 조건 만족 노드 중 랜덤
+        pick = notFarther[Math.floor(Math.random() * notFarther.length)];
+      } else {
+        // 폴백: 가장 덜 멀어지는 노드
+        pick = neighbors.slice().sort((a, b) => distToGoal(a) - distToGoal(b))[0];
+      }
+      path.push(pick); visited.add(pick); cur = pick;
     }
   }
 
-  return fullPath;
-}
-
-// 구간 내 가중치 탐색: BFS 최단 경로 중간에 우회 노드 하나 삽입
-// visited: 전체 경로에서 이미 방문한 노드 집합 (되돌아가기 방지)
-function buildWeightedSegment(from, to, visited) {
-  const shortest = bfs(from, to, wallFrom, wallTo, visited);
-  if (!shortest || shortest.length < 3) return shortest;
-
-  const midIdx  = Math.floor(shortest.length / 2);
-  const midNode = shortest[midIdx];
-
-  // midNode 이웃 중 방문하지 않았고, 벽 아니고, goalAIdx/goalBIdx/startIdx 아닌 노드
-  const detourNb = adjList[midNode].find(nb => {
-    if (visited.has(nb)) return false;
-    if (shortest.includes(nb)) return false;
-    if (nb === goalAIdx || nb === goalBIdx || nb === startIdx) return false;
-    if ((midNode===wallFrom&&nb===wallTo)||(midNode===wallTo&&nb===wallFrom)) return false;
-    return true;
-  });
-
-  if (!detourNb) return shortest;
-
-  // from → detourNb → to (visited 전달)
-  const visitedForSeg1 = new Set([...visited]);
-  const seg1 = bfs(from, detourNb, wallFrom, wallTo, visitedForSeg1);
-  if (!seg1) return shortest;
-
-  const visitedForSeg2 = new Set([...visited, ...seg1]);
-  const seg2 = bfs(detourNb, to, wallFrom, wallTo, visitedForSeg2);
-  if (!seg2) return shortest;
-
-  return [...seg1, ...seg2.slice(1)];
+  if (cur !== to) return null;
+  return path;
 }
 
 // ── 리셋 ──────────────────────────────────────────────────────────────────────
